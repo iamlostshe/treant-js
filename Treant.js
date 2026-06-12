@@ -18,7 +18,6 @@
  */
 
 ;( () => {
-    // Polyfill for IE to use startsWith
     if (!String.prototype.startsWith) {
         String.prototype.startsWith = function(searchString, position){
             return this.substr(position || 0, searchString.length) === searchString;
@@ -28,13 +27,6 @@
     var $ = null;
 
     var UTIL = {
-
-        /**
-         * Directly updates, recursively/deeply, the first object with all properties in the second object
-         * @param {object} applyTo
-         * @param {object} applyFrom
-         * @return {object}
-         */
         inheritAttrs: function( applyTo, applyFrom ) {
             for ( var attr in applyFrom ) {
                 if ( Object.hasOwn(applyFrom, attr ) ) {
@@ -49,12 +41,6 @@
             return applyTo;
         },
 
-        /**
-         * Returns a new object by merging the two supplied objects
-         * @param {object} obj1
-         * @param {object} obj2
-         * @returns {object}
-         */
         createMerge: function( obj1, obj2 ) {
             var newObj = {};
             if ( obj1 ) {
@@ -66,10 +52,6 @@
             return newObj;
         },
 
-        /**
-         * Takes any number of arguments
-         * @returns {*}
-         */
         extend: function() {
             if ( $ ) {
                 Array.prototype.unshift.apply( arguments, [true, {}] );
@@ -80,10 +62,6 @@
             }
         },
 
-        /**
-         * @param {object} obj
-         * @returns {*}
-         */
         cloneObj: function ( obj ) {
             if ( Object( obj ) !== obj ) {
                 return obj;
@@ -97,32 +75,21 @@
             return res;
         },
 
-        /**
-         * @param {Element} el
-         * @param {string} eventType
-         * @param {function} handler
-         */
         addEvent: ( el, eventType, handler ) => {
             if ( $ ) {
                 $( el ).on( eventType+'.treant', handler );
             }
-            else if ( el.addEventListener ) { // DOM Level 2 browsers
+            else if ( el.addEventListener ) {
                 el.addEventListener( eventType, handler, false );
             }
-            else if ( el.attachEvent ) { // IE <= 8
+            else if ( el.attachEvent ) {
                 el.attachEvent( 'on' + eventType, handler );
             }
-            else { // ancient browsers
+            else {
                 el['on' + eventType] = handler;
             }
         },
 
-        /**
-         * @param {string} selector
-         * @param {boolean} raw
-         * @param {Element} parentEl
-         * @returns {Element|jQuery}
-         */
         findEl: ( selector, raw, parentEl ) => {
             parentEl = parentEl || document;
 
@@ -131,9 +98,6 @@
                 return ( raw? $element.get( 0 ): $element );
             }
             else {
-                // todo: getElementsByName()
-                // todo: getElementsByTagName()
-                // todo: getElementsByTagNameNS()
                 if ( selector.charAt( 0 ) === '#' ) {
                     return parentEl.getElementById( selector.substring( 1 ) );
                 }
@@ -197,7 +161,6 @@
                 );
                 strValue = element.currentStyle[strCssRule];
             }
-            //Number(elem.style.width.replace(/[^\d\.\-]/g, ''));
             return ( asInt? parseFloat( strValue ): strValue );
         },
 
@@ -225,7 +188,6 @@
             }
             else {
                 if ( apply ) {
-                    //element.className += " "+cls;
                     element.classList.add( cls );
                 }
                 else {
@@ -246,31 +208,18 @@
         isjQueryAvailable: () => (typeof ($) !== 'undefined' && $)
     };
 
-    /**
-     * ImageLoader is used for determining if all the images from the Tree are loaded.
-     * Node size (width, height) can be correctly determined only when all inner images are loaded
-     */
     var ImageLoader = function() {
         this.reset();
     };
 
     ImageLoader.prototype = {
-
-        /**
-         * @returns {ImageLoader}
-         */
         reset: function() {
             this.loading = [];
             return this;
         },
 
-        /**
-         * @param {TreeNode} node
-         * @returns {ImageLoader}
-         */
         processNode: function( node ) {
             var aImages = node.nodeDOM.getElementsByTagName( 'img' );
-
             var i = aImages.length;
             while ( i-- ) {
                 this.create( node, aImages[i] );
@@ -278,9 +227,6 @@
             return this;
         },
 
-        /**
-         * @returns {ImageLoader}
-         */
         removeAll: function( img_src ) {
             var i = this.loading.length;
             while ( i-- ) {
@@ -291,11 +237,6 @@
             return this;
         },
 
-        /**
-         * @param {TreeNode} node
-         * @param {Element} image
-         * @returns {*}
-         */
         create: function ( node, image ) {
             var self = this, source = image.src;
 
@@ -313,9 +254,8 @@
                 }
 
                 UTIL.addEvent( image, 'load', imgTrigger );
-                UTIL.addEvent( image, 'error', imgTrigger ); // handle broken url-s
+                UTIL.addEvent( image, 'error', imgTrigger );
 
-                // load event is not fired for cached images, force the load event
                 image.src += ( ( image.src.indexOf( '?' ) > 0)? '&': '?' ) + new Date().getTime();
             }
             else {
@@ -323,45 +263,24 @@
             }
         },
 
-        /**
-         * @returns {boolean}
-         */
         isNotLoading: function() {
             return ( this.loading.length === 0 );
         }
     };
 
-    /**
-     * Class: TreeStore
-     * TreeStore is used for holding initialized Tree objects
-     *  Its purpose is to avoid global variables and enable multiple Trees on the page.
-     */
     var TreeStore = {
-
         store: [],
 
-        /**
-         * @param {object} jsonConfig
-         * @returns {Tree}
-         */
         createTree: function( jsonConfig ) {
             var nNewTreeId = this.store.length;
             this.store.push( new Tree( jsonConfig, nNewTreeId ) );
             return this.get( nNewTreeId );
         },
 
-        /**
-         * @param {number} treeId
-         * @returns {Tree}
-         */
         get: function ( treeId ) {
             return this.store[treeId];
         },
 
-        /**
-         * @param {number} treeId
-         * @returns {TreeStore}
-         */
         destroy: function( treeId ) {
             var tree = this.get( treeId );
             if ( tree ) {
@@ -391,26 +310,15 @@
         }
     };
 
-    /**
-     * Tree constructor.
-     * @param {object} jsonConfig
-     * @param {number} treeId
-     * @constructor
-     */
     var Tree = function (jsonConfig, treeId ) {
-
-        /**
-         * @param {object} jsonConfig
-         * @param {number} treeId
-         * @returns {Tree}
-         */
         this.reset = function( jsonConfig, treeId ) {
             this.initJsonConfig = jsonConfig;
             this.initTreeId = treeId;
 
             this.id = treeId;
 
-            this.CONFIG = UTIL.extend( Tree.CONFIG, jsonConfig.chart );
+            var config = jsonConfig.config || {};
+            this.CONFIG = UTIL.extend( Tree.CONFIG, config );
             this.drawArea = UTIL.findEl( this.CONFIG.container, true );
             if ( !this.drawArea ) {
                 throw new Error( 'Failed to find element by selector "'+this.CONFIG.container+'"' );
@@ -418,15 +326,12 @@
 
             UTIL.addClass( this.drawArea, 'Treant' );
 
-            // kill of any child elements that may be there
             this.drawArea.innerHTML = '';
 
             this.imageLoader = new ImageLoader();
 
-            this.nodeDB = new NodeDB( jsonConfig.nodeStructure, this );
+            this.nodeDB = new NodeDB( jsonConfig.nodes, this );
 
-            // key store for storing reference to node connectors,
-            // key = nodeId where the connector ends
             this.connectionStore = {};
 
             this.loaded = false;
@@ -436,9 +341,6 @@
             return this;
         };
 
-        /**
-         * @returns {Tree}
-         */
         this.reload = function() {
             this.reset( this.initJsonConfig, this.initTreeId ).redraw();
             return this;
@@ -448,19 +350,10 @@
     };
 
     Tree.prototype = {
-
-        /**
-         * @returns {NodeDB}
-         */
         getNodeDb: function() {
             return this.nodeDB;
         },
 
-        /**
-         * @param {TreeNode} parentTreeNode
-         * @param {object} nodeDefinition
-         * @returns {TreeNode}
-         */
         addNode: function( parentTreeNode, nodeDefinition ) {
             this.CONFIG.callback.onBeforeAddNode.apply( this, [parentTreeNode, nodeDefinition] );
 
@@ -476,22 +369,14 @@
             return oNewNode;
         },
 
-        /**
-         * @returns {Tree}
-         */
         redraw: function() {
             this.positionTree();
             return this;
         },
 
-        /**
-         * @param {function} callback
-         * @returns {Tree}
-         */
         positionTree: function( callback ) {
-
             if ( this.imageLoader.isNotLoading() ) {
-                var root = this.root();                    
+                var root = this.root();
 
                 this.resetLevelData();
 
@@ -510,14 +395,13 @@
                 }
 
                 if ( !this.loaded ) {
-                    UTIL.addClass( this.drawArea, 'Treant-loaded' ); // nodes are hidden until .loaded class is added
+                    UTIL.addClass( this.drawArea, 'Treant-loaded' );
                     if ( Object.prototype.toString.call( callback ) === "[object Function]" ) {
                         callback( this );
                     }
                     this.CONFIG.callback.onTreeLoaded.apply( this, [root] );
                     this.loaded = true;
                 }
-
             }
             else {
                 setTimeout(
@@ -529,15 +413,6 @@
             return this;
         },
 
-        /**
-         * In a first post-order walk, every node of the tree is assigned a preliminary
-         * x-coordinate (held in field node->prelim).
-         * In addition, internal nodes are given modifiers, which will be used to move their
-         * children to the right (held in field node->modifier).
-         * @param {TreeNode} node
-         * @param {number} level
-         * @returns {Tree}
-         */
         firstWalk: function( node, level ) {
             node.prelim = null;
             node.modifier = null;
@@ -548,7 +423,6 @@
             var leftSibling = node.leftSibling();
 
             if ( node.childrenCount() === 0 || level == this.CONFIG.maxDepth ) {
-                // set preliminary x-coordinate
                 if ( leftSibling ) {
                     node.prelim = leftSibling.prelim + leftSibling.size() + this.CONFIG.siblingSeparation;
                 }
@@ -557,7 +431,6 @@
                 }
             }
             else {
-                //node is not a leaf,  firstWalk for each child
                 for ( var i = 0, n = node.childrenCount(); i < n; i++ ) {
                     this.firstWalk(node.childAt(i), level + 1);
                 }
@@ -573,25 +446,16 @@
                     node.prelim = midPoint;
                 }
 
-                // handle stacked children positioning
-                if ( node.stackParent ) { // handle the parent of stacked children
+                if ( node.stackParent ) {
                     node.modifier += this.nodeDB.get( node.stackChildren[0] ).size()/2 + node.connStyle.stackIndent;
                 }
-                else if ( node.stackParentId ) { // handle stacked children
+                else if ( node.stackParentId ) {
                     node.prelim = 0;
                 }
             }
             return this;
         },
 
-        /*
-         * Clean up the positioning of small sibling subtrees.
-         * Subtrees of a node are formed independently and
-         * placed as close together as possible. By requiring
-         * that the subtrees be rigid at the time they are put
-         * together, we avoid the undesirable effects that can
-         * accrue from positioning nodes rather than subtrees.
-         */
         apportion: function (node, level) {
             var firstChild              = node.firstChild(),
                 firstChildLeftNeighbor  = firstChild.leftNeighbor(),
@@ -599,8 +463,6 @@
                 depthToStop             = this.CONFIG.maxDepth - level;
 
             while( firstChild && firstChildLeftNeighbor && compareDepth <= depthToStop ) {
-                // calculate the position of the firstChild, according to the position of firstChildLeftNeighbor
-
                 var modifierSumRight    = 0,
                     modifierSumLeft     = 0,
                     leftAncestor        = firstChildLeftNeighbor,
@@ -612,14 +474,10 @@
                     modifierSumLeft += leftAncestor.modifier;
                     modifierSumRight += rightAncestor.modifier;
 
-                    // all the stacked children are oriented towards right so use right variables
                     if ( rightAncestor.stackParent !== undefined ) {
                         modifierSumRight += rightAncestor.size() / 2;
                     }
                 }
-
-                // find the gap between two trees and apply it to subTrees
-                // and matching smaller gaps to smaller subtrees
 
                 var totalGap = (firstChildLeftNeighbor.prelim + modifierSumLeft + firstChildLeftNeighbor.size() + this.CONFIG.subTeeSeparation) - (firstChild.prelim + modifierSumRight );
 
@@ -627,7 +485,6 @@
                     var subtreeAux = node,
                         numSubtrees = 0;
 
-                    // count all the subtrees in the LeftSibling
                     while ( subtreeAux && subtreeAux.id !== leftAncestor.id ) {
                         subtreeAux = subtreeAux.leftSibling();
                         numSubtrees++;
@@ -659,14 +516,6 @@
             }
         },
 
-        /*
-         * During a second pre-order walk, each node is given a
-         * final x-coordinate by summing its preliminary
-         * x-coordinate and the modifiers of all the node's
-         * ancestors.  The y-coordinate depends on the height of
-         * the tree.  (The roles of x and y are reversed for
-         * RootOrientations of EAST or WEST.)
-         */
         secondWalk: function( node, level, X, Y ) {
             if ( level > this.CONFIG.maxDepth ) {
                 return;
@@ -682,26 +531,25 @@
                 nodesizeTmp = node.height;
                 if (node.pseudo) {
                     node.height = levelHeight;
-                } // assign a new size to pseudo nodes
+                }
             }
             else if (orient === 'WEST' || orient === 'EAST') {
                 levelHeight = this.levelMaxDim[level].width;
                 nodesizeTmp = node.width;
                 if (node.pseudo) {
                     node.width = levelHeight;
-                } // assign a new size to pseudo nodes
+                }
             }
 
             node.X = xTmp;
 
-            if (node.pseudo) { // pseudo nodes need to be properly aligned, otherwise position is not correct in some examples
+            if (node.pseudo) {
                 if (orient === 'NORTH' || orient === 'WEST') {
-                    node.Y = yTmp; // align "BOTTOM"
+                    node.Y = yTmp;
                 }
                 else if (orient === 'SOUTH' || orient === 'EAST') {
-                    node.Y = (yTmp + (levelHeight - nodesizeTmp)); // align "TOP"
+                    node.Y = (yTmp + (levelHeight - nodesizeTmp));
                 }
-
             } else {
                 node.Y = ( align === 'CENTER' ) ? (yTmp + (levelHeight - nodesizeTmp) / 2) :
                     ( align === 'TOP' )  ? (yTmp + (levelHeight - nodesizeTmp)) :
@@ -723,7 +571,6 @@
 
             if ( node.childrenCount() !== 0 ) {
                 if ( node.id === 0 && this.CONFIG.hideRootNode ) {
-                    // ako je root node Hiden onda nemoj njegovu dijecu pomaknut po Y osi za Level separation, neka ona budu na vrhu
                     this.secondWalk(node.firstChild(), level + 1, X + node.modifier, Y);
                 }
                 else {
@@ -733,17 +580,11 @@
 
             if ( node.rightSibling() ) {
                 this.secondWalk( node.rightSibling(), level, X, Y );
-            }            
+            }
         },
 
-        /**
-         * position all the nodes, center the tree in center of its container
-         * 0,0 coordinate is in the upper left corner
-         * @returns {Tree}
-         */
         positionNodes: function() {
-            var 
-                treeSize = {
+            var treeSize = {
                     x: this.nodeDB.getMinMaxCoord('X', null, null),
                     y: this.nodeDB.getMinMaxCoord('Y', null, null)
                 },
@@ -758,23 +599,20 @@
 
             this.handleOverflow(treeWidth, treeHeight);
 
-            var
-                containerCenter = {
+            var containerCenter = {
                     x: this.drawArea.clientWidth/2,
                     y: this.drawArea.clientHeight/2
                 },
 
                 deltaX = containerCenter.x - treeCenter.x,
                 deltaY = containerCenter.y - treeCenter.y,
-
-                // all nodes must have positive X or Y coordinates, handle this with offsets
-                negOffsetX = ((treeSize.x.min + deltaX) <= 0) ? Math.abs(treeSize.x.min) : 0,
-                negOffsetY = ((treeSize.y.min + deltaY) <= 0) ? Math.abs(treeSize.y.min) : 0,
                 i, len, node;
 
-            // position all the nodes
-            for ( i = 0, len = this.nodeDB.db.length; i < len; i++ ) {
+            // Clamp offsets so the tree never goes past CONFIG.padding on left/top
+            deltaX = Math.max(this.CONFIG.padding - treeSize.x.min, deltaX);
+            deltaY = Math.max(this.CONFIG.padding - treeSize.y.min, deltaY);
 
+            for ( i = 0, len = this.nodeDB.db.length; i < len; i++ ) {
                 node = this.nodeDB.get(i);
 
                 this.CONFIG.callback.onBeforePositionNode.apply( this, [node, i, containerCenter, treeCenter] );
@@ -784,35 +622,47 @@
                     continue;
                 }
 
-                // if the tree is smaller than the draw area, then center the tree within drawing area
-                node.X += negOffsetX + ((treeWidth < this.drawArea.clientWidth) ? deltaX : this.CONFIG.padding);
-                node.Y += negOffsetY + ((treeHeight < this.drawArea.clientHeight) ? deltaY : this.CONFIG.padding);
+                node.X += deltaX;
+                node.Y += deltaY;
 
                 var collapsedParent = node.collapsedParent(),
                     hidePoint = null;
 
                 if (collapsedParent) {
-                    // position the node behind the connector point of the parent, so future animations can be visible
                     hidePoint = collapsedParent.connectorPoint( true );
                     node.hide(hidePoint);
-
                 }
                 else if (node.positioned) {
-                    // node is already positioned,
                     node.show();
                 }
-                else { // inicijalno stvaranje nodeova, postavi lokaciju
+                else {
                     node.nodeDOM.style.left = node.X + 'px';
                     node.nodeDOM.style.top = node.Y + 'px';
                     node.positioned = true;
                 }
 
                 if (node.id !== 0 && !(node.parent().id === 0 && this.CONFIG.hideRootNode)) {
-                    this.setConnectionToParent(node, hidePoint); // skip the root node
+                    this.setConnectionToParent(node, hidePoint);
                 }
                 else if (!this.CONFIG.hideRootNode && node.drawLineThrough) {
-                    // drawlinethrough is performed for for the root node also
                     node.drawLineThroughMe();
+                }
+
+                // Draw extra parent connectors (converging edges)
+                if (node.extraParentIds && node.extraParentIds.length) {
+                    var self = this;
+                    node.extraParentIds.forEach(function(extraParentId) {
+                        var extraParent = self.nodeDB.get(extraParentId);
+                        if (extraParent && !extraParent.pseudo) {
+                            var pathString = hidePoint
+                                ? self.getPointPathString(hidePoint)
+                                : self.getPathString(extraParent, node, false);
+
+                            var connLine = self._R.path(pathString);
+                            connLine.attr(extraParent.connStyle.style);
+                            connLine.toBack();
+                        }
+                    });
                 }
 
                 this.CONFIG.callback.onAfterPositionNode.apply( this, [node, i, containerCenter, treeCenter] );
@@ -820,12 +670,6 @@
             return this;
         },
 
-        /**
-         * Create Raphael instance, (optionally set scroll bars if necessary)
-         * @param {number} treeWidth
-         * @param {number} treeHeight
-         * @returns {Tree}
-         */
         handleOverflow: function( treeWidth, treeHeight ) {
             var viewWidth = (treeWidth < this.drawArea.clientWidth) ? this.drawArea.clientWidth : treeWidth + this.CONFIG.padding*2,
                 viewHeight = (treeHeight < this.drawArea.clientHeight) ? this.drawArea.clientHeight : treeHeight + this.CONFIG.padding*2;
@@ -836,24 +680,20 @@
                 UTIL.setDimensions( this.drawArea, viewWidth, viewHeight );
             }
             else if ( !UTIL.isjQueryAvailable() || this.CONFIG.scrollbar === 'native' ) {
-
-                if ( this.drawArea.clientWidth < treeWidth ) { // is overflow-x necessary
+                if ( this.drawArea.clientWidth < treeWidth ) {
                     this.drawArea.style.overflowX = "auto";
                 }
-
-                if ( this.drawArea.clientHeight < treeHeight ) { // is overflow-y necessary
+                if ( this.drawArea.clientHeight < treeHeight ) {
                     this.drawArea.style.overflowY = "auto";
                 }
             }
-            // Fancy scrollbar relies heavily on jQuery, so guarding with if ( $ )
             else if ( this.CONFIG.scrollbar === 'fancy') {
                 var jq_drawArea = $( this.drawArea );
-                if (jq_drawArea.hasClass('ps-container')) { // znaci da je 'fancy' vec inicijaliziran, treba updateat
+                if (jq_drawArea.hasClass('ps-container')) {
                     jq_drawArea.find('.Treant').css({
                         width: viewWidth,
                         height: viewHeight
                     });
-
                     jq_drawArea.perfectScrollbar('update');
                 }
                 else {
@@ -867,15 +707,10 @@
 
                     mainContainer.perfectScrollbar();
                 }
-            } // else this.CONFIG.scrollbar == 'None'
-
+            }
             return this;
-        },        
-        /**
-         * @param {TreeNode} treeNode
-         * @param {boolean} hidePoint
-         * @returns {Tree}
-         */
+        },
+
         setConnectionToParent: function( treeNode, hidePoint ) {
             var stacked = treeNode.stackParentId,
                 connLine,
@@ -886,7 +721,6 @@
                     this.getPathString(parent, treeNode, stacked);
 
             if ( this.connectionStore[treeNode.id] ) {
-                // connector already exists, update the connector geometry
                 connLine = this.connectionStore[treeNode.id];
                 this.animatePath( connLine, pathString );
             }
@@ -894,7 +728,6 @@
                 connLine = this._R.path( pathString );
                 this.connectionStore[treeNode.id] = connLine;
 
-                // don't show connector arrows por pseudo nodes
                 if ( treeNode.pseudo ) {
                     delete parent.connStyle.style['arrow-end'];
                 }
@@ -912,40 +745,24 @@
             return this;
         },
 
-        /**
-         * Create the path which is represented as a point, used for hiding the connection
-         * A path with a leading "_" indicates the path will be hidden
-         * See: http://dmitrybaranovskiy.github.io/raphael/reference.html#Paper.path
-         * @param {object} hidePoint
-         * @returns {string}
-         */
         getPointPathString: ( hidePoint ) => ["_M", hidePoint.x, ",", hidePoint.y, 'L', hidePoint.x, ",", hidePoint.y, hidePoint.x, ",", hidePoint.y].join(' '),
 
-        /**
-         * This method relied on receiving a valid Raphael Paper.path.
-         * See: http://dmitrybaranovskiy.github.io/raphael/reference.html#Paper.path
-         * A pathString is typically in the format of "M10,20L30,40"
-         * @param path
-         * @param {string} pathString
-         * @returns {Tree}
-         */
         animatePath: function( path, pathString ) {
-            if (path.hidden && pathString.charAt(0) !== "_") { // path will be shown, so show it
+            if (path.hidden && pathString.charAt(0) !== "_") {
                 path.show();
                 path.hidden = false;
             }
 
-            // See: http://dmitrybaranovskiy.github.io/raphael/reference.html#Element.animate
             path.animate(
                 {
                     path: pathString.charAt(0) === "_"?
                         pathString.substring(1):
-                        pathString // remove the "_" prefix if it exists
+                        pathString
                 },
                 this.CONFIG.animation.connectorsSpeed,
                 this.CONFIG.animation.connectorsAnimation,
                 () => {
-                    if ( pathString.charAt(0) === "_" ) { // animation is hiding the path, hide it at the and of animation
+                    if ( pathString.charAt(0) === "_" ) {
                         path.hide();
                         path.hidden = true;
                     }
@@ -954,13 +771,6 @@
             return this;
         },
 
-        /**
-         *
-         * @param {TreeNode} from_node
-         * @param {TreeNode} to_node
-         * @param {boolean} stacked
-         * @returns {string}
-         */
         getPathString: function( from_node, to_node, stacked ) {
             var startPoint = from_node.connectorPoint( true ),
                 endPoint = to_node.connectorPoint( false ),
@@ -970,23 +780,19 @@
 
             if ( orientation === 'NORTH' || orientation === 'SOUTH' ) {
                 P1.y = P2.y = (startPoint.y + endPoint.y) / 2;
-
                 P1.x = startPoint.x;
                 P2.x = endPoint.x;
             }
             else if ( orientation === 'EAST' || orientation === 'WEST' ) {
                 P1.x = P2.x = (startPoint.x + endPoint.x) / 2;
-
                 P1.y = startPoint.y;
                 P2.y = endPoint.y;
             }
 
-            // sp, p1, pm, p2, ep == "x,y"
             var sp = startPoint.x+','+startPoint.y, p1 = P1.x+','+P1.y, p2 = P2.x+','+P2.y, ep = endPoint.x+','+endPoint.y,
                 pm = (P1.x + P2.x)/2 +','+ (P1.y + P2.y)/2, pathString, stackPoint;
 
-            if ( stacked ) { // STACKED CHILDREN
-
+            if ( stacked ) {
                 stackPoint = (orientation === 'EAST' || orientation === 'WEST')?
                 endPoint.x+','+startPoint.y:
                 startPoint.x+','+endPoint.y;
@@ -995,7 +801,7 @@
                     pathString = ["M", sp, 'L', stackPoint, 'L', ep];
                 }
                 else if ( connType === "curve" || connType === "bCurve" ) {
-                    var helpPoint, // used for nicer curve lines
+                    var helpPoint,
                         indent = from_node.connStyle.stackIndent;
 
                     if ( orientation === 'NORTH' ) {
@@ -1012,9 +818,8 @@
                     }
                     pathString = ["M", sp, 'L', helpPoint, 'S', stackPoint, ep];
                 }
-
             }
-            else {  // NORMAL CHILDREN
+            else {
                 if ( connType === "step" ) {
                     pathString = ["M", sp, 'L', p1, 'L', p2, 'L', ep];
                 }
@@ -1032,12 +837,6 @@
             return pathString.join(" ");
         },
 
-        /**
-         * Algorithm works from left to right, so previous processed node will be left neighbour of the next node
-         * @param {TreeNode} node
-         * @param {number} level
-         * @returns {Tree}
-         */
         setNeighbors: function( node, level ) {
             node.leftNeighborId = this.lastNodeOnLevel[level];
             if ( node.leftNeighborId ) {
@@ -1047,13 +846,7 @@
             return this;
         },
 
-        /**
-         * Used for calculation of height and width of a level (level dimensions)
-         * @param {TreeNode} node
-         * @param {number} level
-         * @returns {Tree}
-         */
-        calcLevelDim: function( node, level ) { // root node is on level 0
+        calcLevelDim: function( node, level ) {
             this.levelMaxDim[level] = {
                 width: Math.max( this.levelMaxDim[level]? this.levelMaxDim[level].width: 0, node.width ),
                 height: Math.max( this.levelMaxDim[level]? this.levelMaxDim[level].height: 0, node.height )
@@ -1061,150 +854,246 @@
             return this;
         },
 
-        /**
-         * @returns {Tree}
-         */
         resetLevelData: function() {
             this.lastNodeOnLevel = [];
             this.levelMaxDim = [];
             return this;
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         root: function() {
             return this.nodeDB.get( 0 );
         }
     };
 
-    /**
-     * NodeDB is used for storing the nodes. Each tree has its own NodeDB.
-     * @param {object} nodeStructure
-     * @param {Tree} tree
-     * @constructor
-     */
-    var NodeDB = function ( nodeStructure, tree ) {
-        this.reset( nodeStructure, tree );
+    var NodeDB = function ( nodesConfig, tree ) {
+        this.reset( nodesConfig, tree );
     };
 
     NodeDB.prototype = {
-
-        /**
-         * @param {object} nodeStructure
-         * @param {Tree} tree
-         * @returns {NodeDB}
-         */
-        reset: function( nodeStructure, tree ) {
-
+        reset: function( nodesConfig, tree ) {
             this.db = [];
+            this.userIdMap = {};
 
             var self = this;
 
-            /**
-             * @param {object} node
-             * @param {number} parentId
-             */
-            function iterateChildren( node, parentId ) {
-                var newNode = self.createNode( node, parentId, tree, null );
+            if ( !nodesConfig || !Array.isArray(nodesConfig) || nodesConfig.length === 0 ) {
+                return this;
+            }
 
-                if ( node.children ) {
-                    // pseudo node is used for descending children to the next level
-                    if ( node.childrenDropLevel && node.childrenDropLevel > 0 ) {
-                        while ( node.childrenDropLevel-- ) {
-                            // pseudo node needs to inherit the connection style from its parent for continuous connectors
-                            var connStyle = UTIL.cloneObj( newNode.connStyle );
-                            newNode = self.createNode( 'pseudo', newNode.id, tree, null );
-                            newNode.connStyle = connStyle;
-                            newNode.children = [];
+            // Identify root nodes (no parent or parent not in the config)
+            var rootUserIds = [];
+            var allUserIds = {};
+            var hasParent = {};
+
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                allUserIds[uid] = true;
+            });
+
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                var parent = nodeDef.parent;
+                if (parent !== undefined && parent !== null) {
+                    hasParent[uid] = true;
+                    var parentIds = Array.isArray(parent) ? parent : [parent];
+                    parentIds.forEach(function(pid) {
+                        var pidStr = String(pid);
+                        if (!allUserIds[pidStr]) {
+                            console.warn('Treant: parent "'+pidStr+'" not found for node "'+uid+'"');
+                        }
+                    });
+                }
+            });
+
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                if (!hasParent[uid]) {
+                    rootUserIds.push(nodeDef.id);
+                }
+            });
+
+            // If multiple roots, create virtual hidden root
+            if (rootUserIds.length > 1) {
+                tree.CONFIG.hideRootNode = true;
+                var virtualRootDef = {
+                    id: null,
+                    pseudo: true,
+                    text: '',
+                    _isVirtualRoot: true
+                };
+                var virtualId = this.db.length;
+                var virtualNode = new TreeNode(virtualRootDef, virtualId, -1, tree, null);
+                virtualNode.pseudo = true;
+                virtualNode.width = 0;
+                virtualNode.height = 0;
+                this.db.push(virtualNode);
+            }
+
+            // First pass: create all user nodes
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                var internalId = self.db.length;
+                self.userIdMap[uid] = internalId;
+
+                var node = new TreeNode(nodeDef, internalId, -1, tree, null);
+                self.db.push(node);
+            });
+
+            // Pass 2a: resolve parent relationships (must come before children)
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                var internalId = self.userIdMap[uid];
+                var node = self.db[internalId];
+
+                if (nodeDef.parent === undefined || nodeDef.parent === null) return;
+
+                var parentIds = Array.isArray(nodeDef.parent) ? nodeDef.parent : [nodeDef.parent];
+                parentIds.forEach(function(parentId, idx) {
+                    var parentUid = String(parentId);
+                    var parentInternalId = self.userIdMap[parentUid];
+                    if (parentInternalId === undefined) return;
+
+                    if (idx === 0) {
+                        node.parentId = parentInternalId;
+                    } else {
+                        node.extraParentIds.push(parentInternalId);
+                    }
+                });
+            });
+
+            // Pass 2b: resolve children (after parent — now we can check primary parent)
+            nodesConfig.forEach(function(nodeDef) {
+                var uid = String(nodeDef.id);
+                var internalId = self.userIdMap[uid];
+                var node = self.db[internalId];
+
+                if (nodeDef.children === undefined || nodeDef.children === null) return;
+
+                var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
+                childIds.forEach(function(childId) {
+                    var childUid = String(childId);
+                    var childInternalId = self.userIdMap[childUid];
+                    if (childInternalId === undefined) return;
+
+                    var childNode = self.db[childInternalId];
+                    if (childNode.parentId === -1 || childNode.parentId === internalId) {
+                        node.children.push(childInternalId);
+                    }
+                });
+            });
+
+            // Ensure children that have explicit parent are still in that parent's children list
+            nodesConfig.forEach(function(nodeDef) {
+                if (!nodeDef.children) return;
+                var parentUid = String(nodeDef.id);
+                var parentInternalId = self.userIdMap[parentUid];
+                if (parentInternalId === undefined) return;
+
+                var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
+                childIds.forEach(function(childId) {
+                    var childUid = String(childId);
+                    var childInternalId = self.userIdMap[childUid];
+                    if (childInternalId === undefined) return;
+
+                    var childNode = self.db[childInternalId];
+                    // Only set parent if child doesn't have one yet
+                    if (childNode.parentId === -1) {
+                        childNode.parentId = parentInternalId;
+                        // Also add to this parent's children if not already there
+                        var parentNode = self.db[parentInternalId];
+                        if (parentNode.children.indexOf(childInternalId) === -1) {
+                            parentNode.children.push(childInternalId);
                         }
                     }
+                });
+            });
 
-                    var stack = ( node.stackChildren && !self.hasGrandChildren( node ) )? newNode.id: null;
+            // Detect implicit extra parents: parent lists child in children
+            // but child's primary parent is someone else
+            nodesConfig.forEach(function(nodeDef) {
+                if (!nodeDef.children) return;
+                var parentUid = String(nodeDef.id);
+                var parentInternalId = self.userIdMap[parentUid];
+                if (parentInternalId === undefined) return;
 
-                    // children are positioned on separate levels, one beneath the other
-                    if ( stack !== null ) {
-                        newNode.stackChildren = [];
+                var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
+                childIds.forEach(function(childId) {
+                    var childUid = String(childId);
+                    var childInternalId = self.userIdMap[childUid];
+                    if (childInternalId === undefined) return;
+
+                    var childNode = self.db[childInternalId];
+                    if (childNode.parentId !== -1 && childNode.parentId !== parentInternalId) {
+                        // This parent wants this child, but isn't the primary parent,
+                        // so it's an extra parent connector
+                        if (childNode.extraParentIds.indexOf(parentInternalId) === -1) {
+                            childNode.extraParentIds.push(parentInternalId);
+                        }
                     }
+                });
+            });
 
-                    for ( var i = 0, len = node.children.length; i < len ; i++ ) {
-                        if ( stack !== null ) {
-                            newNode =  self.createNode( node.children[i], newNode.id, tree, stack );
-                            if ( ( i + 1 ) < len ) {
-                                // last node cant have children
-                                newNode.children = [];
-                            }
-                        }
-                        else {
-                            iterateChildren( node.children[i], newNode.id );
-                        }
+            // Handle virtual root: reparent all root nodes
+            var virtualRootId = (rootUserIds.length > 1) ? 0 : -1;
+
+            if (virtualRootId >= 0) {
+                for (var i = 0; i < this.db.length; i++) {
+                    var nd = this.db[i];
+                    if (nd.id !== virtualRootId && nd.parentId === -1) {
+                        nd.parentId = virtualRootId;
+                        var vrNode = this.db[virtualRootId];
+                        vrNode.children.push(nd.id);
                     }
                 }
             }
 
-            if ( tree.CONFIG.animateOnInit ) {
-                nodeStructure.collapsed = true;
+            // Handle nodes with parent derived from children but also children list
+            // Ensure consistency
+            for (var j = 0; j < this.db.length; j++) {
+                var n = this.db[j];
+                if (n.parentId >= 0) {
+                    var parentNode = this.db[n.parentId];
+                    if (parentNode.children.indexOf(n.id) === -1) {
+                        parentNode.children.push(n.id);
+                    }
+                }
             }
 
-            iterateChildren( nodeStructure, -1 ); // root node
+            // Clear children of nodes that don't have children of their own but pseudo-derived
+            // Actually, leave as is
 
-            this.createGeometries( tree );
+            this.createGeometries(tree);
 
             return this;
         },
 
-        /**
-         * @param {Tree} tree
-         * @returns {NodeDB}
-         */
         createGeometries: function( tree ) {
             var i = this.db.length;
-
             while ( i-- ) {
                 this.get( i ).createGeometry( tree );
             }
             return this;
         },
 
-        /**
-         * @param {number} nodeId
-         * @returns {TreeNode}
-         */
         get: function ( nodeId ) {
-            return this.db[nodeId]; // get TreeNode by ID
+            return this.db[nodeId];
         },
 
-        /**
-         * @param {function} callback
-         * @returns {NodeDB}
-         */
         walk: function( callback ) {
             var i = this.db.length;
-
             while ( i-- ) {
                 callback.apply( this, [ this.get( i ) ] );
             }
             return this;
         },
 
-        /**
-         *
-         * @param {object} nodeStructure
-         * @param {number} parentId
-         * @param {Tree} tree
-         * @param {number} stackParentId
-         * @returns {TreeNode}
-         */
         createNode: function( nodeStructure, parentId, tree, stackParentId ) {
             var node = new TreeNode( nodeStructure, this.db.length, parentId, tree, stackParentId );
-
             this.db.push( node );
 
-            // skip root node (0)
             if ( parentId >= 0 ) {
                 var parent = this.get( parentId );
 
-                // todo: refactor into separate private method
                 if ( nodeStructure.position ) {
                     if ( nodeStructure.position === 'left' ) {
                         parent.children.push( node.id );
@@ -1216,7 +1105,6 @@
                         parent.children.splice( Math.floor( parent.children.length / 2 ), 0, node.id );
                     }
                     else {
-                        // edge case when there's only 1 child
                         var position = parseInt( nodeStructure.position );
                         if ( parent.children.length === 1 && position > 0 ) {
                             parent.children.splice( 0, 0, node.id );
@@ -1242,17 +1130,14 @@
             return node;
         },
 
-        getMinMaxCoord: function( dim, parent, MinMax ) { // used for getting the dimensions of the tree, dim = 'X' || 'Y'
-            // looks for min and max (X and Y) within the set of nodes
+        getMinMaxCoord: function( dim, parent, MinMax ) {
             parent = parent || this.get(0);
-
-            MinMax = MinMax || { // start with root node dimensions
+            MinMax = MinMax || {
                     min: parent[dim],
                     max: parent[dim] + ( ( dim === 'X' )? parent.width: parent.height )
                 };
 
             var i = parent.childrenCount();
-
             while ( i-- ) {
                 var node = parent.childAt( i ),
                     maxTest = node[dim] + ( ( dim === 'X' )? node.width: node.height ),
@@ -1270,46 +1155,25 @@
             return MinMax;
         },
 
-        /**
-         * @param {object} nodeStructure
-         * @returns {boolean}
-         */
-	hasGrandChildren: (nodeStructure) => {
-	    var i = nodeStructure.children.length;
-	    while (i--) {
-	        if (nodeStructure.children[i].children && nodeStructure.children[i].children.length > 0) {
-	            return true;
-	        }
-	    }
-	    return false;
-	}
+        hasGrandChildren: (nodeStructure) => {
+            var i = nodeStructure.children.length;
+            while (i--) {
+                if (nodeStructure.children[i].children && nodeStructure.children[i].children.length > 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
     };
 
-    /**
-     * TreeNode constructor.
-     * @param {object} nodeStructure
-     * @param {number} id
-     * @param {number} parentId
-     * @param {Tree} tree
-     * @param {number} stackParentId
-     * @constructor
-     */
     var TreeNode = function( nodeStructure, id, parentId, tree, stackParentId ) {
         this.reset( nodeStructure, id, parentId, tree, stackParentId );
     };
 
     TreeNode.prototype = {
-
-        /**
-         * @param {object} nodeStructure
-         * @param {number} id
-         * @param {number} parentId
-         * @param {Tree} tree
-         * @param {number} stackParentId
-         * @returns {TreeNode}
-         */
         reset: function( nodeStructure, id, parentId, tree, stackParentId ) {
             this.id = id;
+            this.userId = nodeStructure.id || '__internal__';
             this.parentId = parentId;
             this.treeId = tree.id;
 
@@ -1319,13 +1183,11 @@
 
             this.stackParentId = stackParentId;
 
-            // pseudo node is a node with width=height=0, it is invisible, but necessary for the correct positioning of the tree
-            this.pseudo = nodeStructure === 'pseudo' || nodeStructure['pseudo']; // todo: surely if nodeStructure is a scalar then the rest will error:
+            this.pseudo = nodeStructure.pseudo || false;
 
-            this.meta = nodeStructure.meta || {};
             this.image = nodeStructure.image || null;
 
-            this.link = UTIL.createMerge( tree.CONFIG.node.link,  nodeStructure.link );
+            this.link = nodeStructure.link || '';
 
             this.connStyle = UTIL.createMerge( tree.CONFIG.connectors, nodeStructure.connectors );
             this.connector = null;
@@ -1335,73 +1197,49 @@
             this.collapsable = nodeStructure.collapsable === false ? false : ( nodeStructure.collapsable || tree.CONFIG.node.collapsable );
             this.collapsed = nodeStructure.collapsed;
 
-            this.text = nodeStructure.text;
+            this.text = nodeStructure.text || '';
 
-            // '.node' DIV
             this.nodeInnerHTML = nodeStructure.innerHTML;
-            this.nodeHTMLclass = (tree.CONFIG.node.HTMLclass ? tree.CONFIG.node.HTMLclass : '') + // globally defined class for the nodex
-                (nodeStructure.HTMLclass ? (' ' + nodeStructure.HTMLclass) : '');       // + specific node class
+            this.nodeHTMLclass = (tree.CONFIG.node.HTMLclass ? tree.CONFIG.node.HTMLclass : '') +
+                (nodeStructure.HTMLclass ? (' ' + nodeStructure.HTMLclass) : '');
 
             this.nodeHTMLid = nodeStructure.HTMLid;
 
             this.children = [];
 
+            this.extraParentIds = [];
+
             return this;
         },
 
-        /**
-         * @returns {Tree}
-         */
         getTree: function() {
             return TreeStore.get( this.treeId );
         },
 
-        /**
-         * @returns {object}
-         */
         getTreeConfig: function() {
             return this.getTree().CONFIG;
         },
 
-        /**
-         * @returns {NodeDB}
-         */
         getTreeNodeDb: function() {
             return this.getTree().getNodeDb();
         },
 
-        /**
-         * @param {number} nodeId
-         * @returns {TreeNode}
-         */
         lookupNode: function( nodeId ) {
             return this.getTreeNodeDb().get( nodeId );
         },
 
-        /**
-         * @returns {Tree}
-         */
         Tree: function() {
             return TreeStore.get( this.treeId );
         },
 
-        /**
-         * @param {number} nodeId
-         * @returns {TreeNode}
-         */
         dbGet: function( nodeId ) {
             return this.getTreeNodeDb().get( nodeId );
         },
 
-        /**
-         * Returns the width of the node
-         * @returns {float}
-         */
         size: function() {
             var orientation = this.getTreeConfig().rootOrientation;
 
             if ( this.pseudo ) {
-                // prevents separating the subtrees
                 return ( -this.getTreeConfig().subTeeSeparation );
             }
 
@@ -1413,96 +1251,58 @@
             }
         },
 
-        /**
-         * @returns {number}
-         */
         childrenCount: function () {
             return ( ( this.collapsed || !this.children)? 0: this.children.length );
         },
 
-        /**
-         * @param {number} index
-         * @returns {TreeNode}
-         */
         childAt: function( index ) {
             return this.dbGet( this.children[index] );
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         firstChild: function() {
             return this.childAt( 0 );
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         lastChild: function() {
             return this.childAt( this.children.length - 1 );
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         parent: function() {
             return this.lookupNode( this.parentId );
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         leftNeighbor: function() {
             if ( this.leftNeighborId ) {
                 return this.lookupNode( this.leftNeighborId );
             }
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         rightNeighbor: function() {
             if ( this.rightNeighborId ) {
                 return this.lookupNode( this.rightNeighborId );
             }
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         leftSibling: function () {
             var leftNeighbor = this.leftNeighbor();
-
             if ( leftNeighbor && leftNeighbor.parentId === this.parentId ){
                 return leftNeighbor;
             }
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         rightSibling: function () {
             var rightNeighbor = this.rightNeighbor();
-
             if ( rightNeighbor && rightNeighbor.parentId === this.parentId ) {
                 return rightNeighbor;
             }
         },
 
-        /**
-         * @returns {number}
-         */
         childrenCenter: function () {
             var first = this.firstChild(),
                 last = this.lastChild();
-
             return ( first.prelim + ((last.prelim - first.prelim) + last.size()) / 2 );
         },
 
-        /**
-         * Find out if one of the node ancestors is collapsed
-         * @returns {*}
-         */
         collapsedParent: function() {
             var parent = this.parent();
             if ( !parent ) {
@@ -1514,12 +1314,6 @@
             return parent.collapsedParent();
         },
 
-        /**
-         * Returns the leftmost child at specific level, (initial level = 0)
-         * @param level
-         * @param depth
-         * @returns {*}
-         */
         leftMost: function ( level, depth ) {
             if ( level >= depth ) {
                 return this;
@@ -1536,11 +1330,10 @@
             }
         },
 
-        // returns start or the end point of the connector line, origin is upper-left
         connectorPoint: function(startPoint) {
             var orient = this.Tree().CONFIG.rootOrientation, point = {};
 
-            if ( this.stackParentId ) { // return different end point if node is a stacked child
+            if ( this.stackParentId ) {
                 if ( orient === 'NORTH' || orient === 'SOUTH' ) {
                     orient = 'WEST';
                 }
@@ -1549,7 +1342,6 @@
                 }
             }
 
-            // if pseudo, a virtual center is used
             if ( orient === 'NORTH' ) {
                 point.x = (this.pseudo) ? this.X - this.Tree().CONFIG.subTeeSeparation/2 : this.X + this.width/2;
                 point.y = (startPoint) ? this.Y + this.height : this.Y;
@@ -1569,20 +1361,13 @@
             return point;
         },
 
-        /**
-         * @returns {string}
-         */
-        pathStringThrough: function() { // get the geometry of a path going through the node
+        pathStringThrough: function() {
             var startPoint = this.connectorPoint( true ),
                 endPoint = this.connectorPoint( false );
-
             return ["M", startPoint.x+","+startPoint.y, 'L', endPoint.x+","+endPoint.y].join(" ");
         },
 
-        /**
-         * @param {object} hidePoint
-         */
-        drawLineThroughMe: function( hidePoint ) { // hidepoint se proslijedjuje ako je node sakriven zbog collapsed
+        drawLineThroughMe: function( hidePoint ) {
             var pathString = hidePoint?
                 this.Tree().getPointPathString( hidePoint ):
                 this.pathStringThrough();
@@ -1617,9 +1402,6 @@
             );
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         collapse: function() {
             if ( !this.collapsed ) {
                 this.toggleCollapse();
@@ -1627,9 +1409,6 @@
             return this;
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         expand: function() {
             if ( this.collapsed ) {
                 this.toggleCollapse();
@@ -1637,22 +1416,19 @@
             return this;
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         toggleCollapse: function() {
             var oTree = this.getTree();
 
             if ( !oTree.inAnimation ) {
                 oTree.inAnimation = true;
 
-                this.collapsed = !this.collapsed; // toggle the collapse at each click
+                this.collapsed = !this.collapsed;
                 UTIL.toggleClass( this.nodeDOM, 'collapsed', this.collapsed );
 
                 oTree.positionTree();
 
                 setTimeout(
-                    () => { // set the flag after the animation
+                    () => {
                         oTree.inAnimation = false;
                         oTree.CONFIG.callback.onToggleCollapseFinished.apply( oTree, [ this, this.collapsed ] );
                     },
@@ -1683,7 +1459,6 @@
                 oNewState.top = collapse_to_point.y;
             }
 
-            // if parent was hidden in initial configuration, position the node behind the parent without animations
             if ( !this.positioned || bCurrentState ) {
                 this.nodeDOM.style.visibility = 'hidden';
                 if ( $ ) {
@@ -1696,7 +1471,6 @@
                 this.positioned = true;
             }
             else {
-                // todo: fix flashy bug when a node is manually hidden and tree.redraw is called.
                 if ( $ ) {
                     $( this.nodeDOM ).animate(
                         oNewState, config.animation.nodeSpeed, config.animation.nodeAnimation,
@@ -1715,15 +1489,12 @@
                 }
             }
 
-            // animate the line through node if the line exists
             if ( this.lineThroughMe ) {
                 var new_path = tree.getPointPathString( collapse_to_point );
                 if ( bCurrentState ) {
-                    // update without animations
                     this.lineThroughMe.attr( { path: new_path } );
                 }
                 else {
-                    // update with animations
                     tree.animatePath( this.lineThroughMe, tree.getPointPathString( collapse_to_point ) );
                 }
             }
@@ -1731,9 +1502,6 @@
             return this;
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         hideConnector: function() {
             var oTree = this.Tree();
             var oPath = oTree.connectionStore[this.id];
@@ -1747,7 +1515,7 @@
             return this;
         },
 
-        show: function() {            
+        show: function() {
             this.hidden = false;
 
             this.nodeDOM.style.visibility = 'visible';
@@ -1761,13 +1529,11 @@
                 },
                 config = this.getTreeConfig();
 
-            // if the node was hidden, update opacity and position
             if ( $ ) {
                 $( this.nodeDOM ).animate(
                     oNewState,
                     config.animation.nodeSpeed, config.animation.nodeAnimation,
                     function () {
-                        // $.animate applies "overflow:hidden" to the node, remove it to avoid visual problems
                         this.style.overflow = "";
                     }
                 );
@@ -1788,9 +1554,6 @@
             return this;
         },
 
-        /**
-         * @returns {TreeNode}
-         */
         showConnector: function() {
             var oTree = this.Tree();
             var oPath = oTree.connectionStore[this.id];
@@ -1805,77 +1568,24 @@
         }
     };
 
-
-    /**
-     * Build a node from the 'text' and 'img' property and return with it.
-     *
-     * The node will contain all the fields that present under the 'text' property
-     * Each field will refer to a css class with name defined as node-{$property_name}
-     *
-     * Example:
-     * The definition:
-     *
-     *   text: {
-     *     desc: "some description",
-     *     paragraph: "some text"
-     *   }
-     *
-     * will generate the following elements:
-     *
-     *   <p class="node-desc">some description</p>
-     *   <p class="node-paragraph">some text</p>
-     *
-     * @Returns the configured node
-     */
     TreeNode.prototype.buildNodeFromText = function (node) {
-        // IMAGE
         if (this.image) {
             image = document.createElement('img');
             image.src = this.image;
             node.appendChild(image);
         }
 
-        // TEXT
         if (this.text) {
-            for (var key in this.text) {
-                // adding DATA Attributes to the node
-                if (key.startsWith("data-")) {
-                    node.setAttribute(key, this.text[key]);
-                } else {
-                    
-                    var textElement = document.createElement(this.text[key].href ? 'a' : 'p');
-                    
-                    // make an <a> element if required
-                    if (this.text[key].href) {
-                        textElement.href = this.text[key].href;
-                        if (this.text[key].target) {
-                            textElement.target = this.text[key].target;
-                        }
-                    }
-                    
-                    textElement.className =  "node-"+key;
-                    textElement.appendChild(document.createTextNode(
-                        this.text[key].val ? this.text[key].val :
-                        this.text[key] instanceof Object ? "'val' param missing!" : this.text[key]
-                    )
-                    );
-                    
-                    node.appendChild(textElement);
-                }
-            }
+            var textElement = document.createElement('p');
+            textElement.className = "node-text";
+            textElement.appendChild(document.createTextNode(this.text));
+            node.appendChild(textElement);
         }
+
         return node;
     };
 
-    /**
-     * Build a node from  'nodeInnerHTML' property that defines an existing HTML element, referenced by it's id, e.g: #someElement
-     * Change the text in the passed node to 'Wrong ID selector' if the referenced element does ot exist,
-     * return with a cloned and configured node otherwise
-     *
-     * @Returns node the configured node
-     */
     TreeNode.prototype.buildNodeFromHtml = function(node) {
-        // get some element by ID and clone its structure into a node
         if (this.nodeInnerHTML.charAt(0) === "#") {
             var elem = document.getElementById(this.nodeInnerHTML.substring(1));
             if (elem) {
@@ -1888,15 +1598,11 @@
             }
         }
         else {
-            // insert your custom HTML into a node
             node.innerHTML = this.nodeInnerHTML;
         }
         return node;
     };
 
-    /**
-     * @param {Tree} tree
-     */
     TreeNode.prototype.createGeometry = function( tree ) {
         if ( this.id === 0 && tree.CONFIG.hideRootNode ) {
             this.width = 0;
@@ -1907,8 +1613,7 @@
         var drawArea = tree.drawArea,
             image,
 
-            /////////// CREATE NODE //////////////
-            node = document.createElement( this.link.href? 'a': 'div' );
+            node = document.createElement( this.link ? 'a': 'div' );
 
         node.className = ( !this.pseudo )? TreeNode.CONFIG.nodeHTMLclass: 'pseudo';
         if ( this.nodeHTMLclass && !this.pseudo ) {
@@ -1919,9 +1624,9 @@
             node.id = this.nodeHTMLid;
         }
 
-        if ( this.link.href ) {
-            node.href = this.link.href;
-            node.target = this.link.target;
+        if ( this.link ) {
+            node.href = this.link;
+            node.target = tree.CONFIG.node.link.target;
         }
 
         if ( $ ) {
@@ -1933,11 +1638,9 @@
             };
         }
 
-        /////////// BUILD NODE CONTENT //////////////
         if ( !this.pseudo ) {
             node = this.nodeInnerHTML? this.buildNodeFromHtml(node) : this.buildNodeFromText(node);
 
-            // handle collapse switch
             if ( this.collapsed || (this.collapsable && this.childrenCount() && !this.stackParentId) ) {
                 this.createSwitchGeometry( tree, node );
             }
@@ -1945,7 +1648,6 @@
 
         tree.CONFIG.callback.onCreateNode.apply( tree, [this, node] );
 
-        /////////// APPEND all //////////////
         drawArea.appendChild(node);
 
         this.width = node.offsetWidth;
@@ -1956,14 +1658,9 @@
         tree.imageLoader.processNode(this);
     };
 
-    /**
-     * @param {Tree} tree
-     * @param {Element} nodeEl
-     */
     TreeNode.prototype.createSwitchGeometry = function( tree, nodeEl ) {
         nodeEl = nodeEl || this.nodeDOM;
 
-        // safe guard and check to see if it has a collapse switch
         var nodeSwitchEl = UTIL.findEl( '.collapse-switch', true, nodeEl );
         if ( !nodeSwitchEl ) {
             nodeSwitchEl = document.createElement( 'a' );
@@ -1980,16 +1677,10 @@
         return nodeSwitchEl;
     };
 
-
-    // ###########################################
-    //      Expose global + default CONFIG params
-    // ###########################################
-
-
     Tree.CONFIG = {
         maxDepth: 100,
-        rootOrientation: 'NORTH', // NORTH || EAST || WEST || SOUTH
-        nodeAlign: 'CENTER', // CENTER || TOP || BOTTOM
+        rootOrientation: 'NORTH',
+        nodeAlign: 'CENTER',
         levelSeparation: 30,
         siblingSeparation: 30,
         subTeeSeparation: 30,
@@ -1999,28 +1690,27 @@
         animateOnInit: false,
         animateOnInitDelay: 500,
 
-        padding: 15, // the difference is seen only when the scrollbar is shown
-        scrollbar: 'native', // "native" || "fancy" || "None" (PS: "fancy" requires jquery and perfect-scrollbar)
+        padding: 15,
+        scrollbar: 'native',
 
         connectors: {
-            type: 'curve', // 'curve' || 'step' || 'straight' || 'bCurve'
+            type: 'curve',
             style: {
                 stroke: 'black'
             },
             stackIndent: 15
         },
 
-        node: { // each node inherits this, it can all be overridden in node config
-
-            // HTMLclass: 'node',
-            // drawLineThrough: false,
-            // collapsable: false,
+        node: {
+            HTMLclass: 'node',
+            drawLineThrough: false,
+            collapsable: false,
             link: {
                 target: '_self'
             }
         },
 
-        animation: { // each node inherits this, it can all be overridden in node config
+        animation: {
             nodeSpeed: 450,
             nodeAnimation: 'linear',
             connectorsSpeed: 450,
@@ -2028,16 +1718,16 @@
         },
 
         callback: {
-            onCreateNode: ( treeNode, treeNodeDom ) => {}, // this = Tree
-            onCreateNodeCollapseSwitch: ( treeNode, treeNodeDom, switchDom ) => {}, // this = Tree
-            onAfterAddNode: ( newTreeNode, parentTreeNode, nodeStructure ) => {}, // this = Tree
-            onBeforeAddNode: ( parentTreeNode, nodeStructure ) => {}, // this = Tree
-            onAfterPositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {}, // this = Tree
-            onBeforePositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {}, // this = Tree
-            onToggleCollapseFinished: ( treeNode, bIsCollapsed ) => {}, // this = Tree
-            onAfterClickCollapseSwitch: ( nodeSwitch, event ) => {}, // this = TreeNode
-            onBeforeClickCollapseSwitch: ( nodeSwitch, event ) => {}, // this = TreeNode
-            onTreeLoaded: ( rootTreeNode ) => {} // this = Tree
+            onCreateNode: ( treeNode, treeNodeDom ) => {},
+            onCreateNodeCollapseSwitch: ( treeNode, treeNodeDom, switchDom ) => {},
+            onAfterAddNode: ( newTreeNode, parentTreeNode, nodeStructure ) => {},
+            onBeforeAddNode: ( parentTreeNode, nodeStructure ) => {},
+            onAfterPositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {},
+            onBeforePositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {},
+            onToggleCollapseFinished: ( treeNode, bIsCollapsed ) => {},
+            onAfterClickCollapseSwitch: ( nodeSwitch, event ) => {},
+            onBeforeClickCollapseSwitch: ( nodeSwitch, event ) => {},
+            onTreeLoaded: ( rootTreeNode ) => {}
         }
     };
 
@@ -2045,105 +1735,43 @@
         nodeHTMLclass: 'node'
     };
 
-    // #############################################
-    // Makes a JSON chart config out of Array config
-    // #############################################
-
-    var JSONconfig = {
-        make: function( configArray ) {
-
-            var i = configArray.length, node;
-
-            this.jsonStructure = {
-                chart: null,
-                nodeStructure: null
-            };
-            //fist loop: find config, find root;
-            while(i--) {
-                node = configArray[i];
-                if (Object.hasOwn(node, 'container')) {
-                    this.jsonStructure.chart = node;
-                    continue;
-                }
-
-                if (!Object.hasOwn(node, 'parent') && ! Object.hasOwn(node, 'container')) {
-                    this.jsonStructure.nodeStructure = node;
-                    node._json_id = 0;
-                }
-            }
-
-            this.findChildren(configArray);
-
-            return this.jsonStructure;
-        },
-
-        findChildren: function(nodes) {
-            var parents = [0]; // start with a a root node
-
-            while(parents.length) {
-                var parentId = parents.pop(),
-                    parent = this.findNode(this.jsonStructure.nodeStructure, parentId),
-                    i = 0, len = nodes.length,
-                    children = [];
-
-                for(;i<len;i++) {
-                    var node = nodes[i];
-                    if(node.parent && (node.parent._json_id === parentId)) { // skip config and root nodes
-
-                        node._json_id = this.getID();
-
-                        delete node.parent;
-
-                        children.push(node);
-                        parents.push(node._json_id);
-                    }
-                }
-
-                if (children.length) {
-                    parent.children = children;
-                }
-            }
-        },
-
-        findNode: function( node, nodeId ) {
-            var childrenLen, found;
-
-            if (node._json_id === nodeId) {
-                return node;
-            }
-            else if ( node.children ) {
-                childrenLen = node.children.length;
-                while ( childrenLen-- ) {
-                    found = this.findNode(node.children[childrenLen], nodeId);
-                    if ( found ) {
-                        return found;
-                    }
-                }
-            }
-        },
-
-        getID: (
-            () => {
-                var i = 1;
-                return () => i++;
-            }
-        )()
-    };
-
-    /**
-     * Chart constructor.
-     */
     var Treant = function( jsonConfig, callback, jQuery ) {
-        if ( jsonConfig instanceof Array ) {
-            jsonConfig = JSONconfig.make( jsonConfig );
+        // Extract the nodes array
+        var nodesArray = jsonConfig.nodes || [];
+
+        // Build internal config: everything except nodes
+        var config = {};
+
+        // Copy all properties from jsonConfig except 'nodes'
+        for (var key in jsonConfig) {
+            if (Object.hasOwn(jsonConfig, key) && key !== 'nodes') {
+                config[key] = jsonConfig[key];
+            }
         }
 
-        // optional
+        // Handle container default
+        if (!config.container) {
+            config.container = '#graph';
+        }
+
+        // Handle target
+        if (config.target) {
+            config.node = config.node || {};
+            config.node.link = config.node.link || {};
+            config.node.link.target = config.target;
+            delete config.target;
+        }
+
         if ( jQuery ) {
             $ = jQuery;
         }
 
-        this.tree = TreeStore.createTree( jsonConfig );
+        var treeConfig = {
+            config: config,
+            nodes: nodesArray
+        };
+
+        this.tree = TreeStore.createTree( treeConfig );
         this.tree.positionTree( callback );
     };
 
@@ -2151,7 +1779,6 @@
         TreeStore.destroy( this.tree.id );
     };
 
-    /* expose constructor globally */
     window.Treant = Treant;
 
 })();
