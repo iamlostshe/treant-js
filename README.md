@@ -8,34 +8,22 @@ triton is an SVG based JS library for drawing tree diagrams (forked from [treant
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <link rel="stylesheet" href="triton.css">
-  <style>
-    #graph { height: 500px; width: 800px; }
-    .triton > .node {
-      padding: 8px 12px; border-radius: 4px;
-      background: #fff; border: 1px solid #ccc;
-      width: 160px; text-align: center;
-    }
-    .node-text { margin: 0; font-size: 13px; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Graph</title>
+
+    <link rel="stylesheet" href="https://iamlostshe.github.io/triton/triton.css">
 </head>
+
 <body>
-  <div class="chart" id="graph"></div>
-  <script src="https://raw.githubusercontent.com/iamlostshe/treant-js/refs/heads/master/vendor/raphael.js"></script>
-  <script src="https://raw.githubusercontent.com/iamlostshe/treant-js/refs/heads/master/triton.min.js"></script>
-  <script>
-    new triton({
-      nodes: [
-        { id: 1, text: "Root",       children: [2, 3] },
-        { id: 2, text: "Child A",    parent: 1 },
-        { id: 3, text: "Child B",    parent: 1, children: [4] },
-        { id: 4, text: "Grandchild", parent: 3 },
-      ]
-    });
-  </script>
+    <div class="chart" id="graph"></div>
+    <script src="https://iamlostshe.github.io/triton/vendor/raphael.js"></script>
+    <script src="https://iamlostshe.github.io/triton/triton.min.js"></script>
 </body>
+
 </html>
 ```
 
