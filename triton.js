@@ -1,12 +1,12 @@
 /*
- * Treant-js
+ * triton - fork of treant-js
  *
  * (c) 2013 Fran Peručić
- * Treant-js may be freely distributed under the MIT license.
+ * treant-js may be freely distributed under the MIT license.
  * For all details and documentation:
  * http://fperucic.github.io/treant-js
  *
- * Treant is an open-source JavaScipt library for visualization of tree diagrams.
+ * triton is an open-source JavaScipt library for visualization of tree diagrams.
  * It implements the node positioning algorithm of John Q. Walker II "Positioning nodes for General Trees".
  *
  * References:
@@ -17,9 +17,9 @@
  * Dave Goodchild, https://github.com/dlgoodchild
  */
 
-;( () => {
+; (() => {
     if (!String.prototype.startsWith) {
-        String.prototype.startsWith = function(searchString, position){
+        String.prototype.startsWith = function (searchString, position) {
             return this.substr(position || 0, searchString.length) === searchString;
         };
     }
@@ -27,11 +27,11 @@
     var $ = null;
 
     var UTIL = {
-        inheritAttrs: function( applyTo, applyFrom ) {
-            for ( var attr in applyFrom ) {
-                if ( Object.hasOwn(applyFrom, attr ) ) {
-                    if ( ( applyTo[attr] instanceof Object && applyFrom[attr] instanceof Object ) && ( typeof applyFrom[attr] !== 'function' ) ) {
-                        this.inheritAttrs( applyTo[attr], applyFrom[attr] );
+        inheritAttrs: function (applyTo, applyFrom) {
+            for (var attr in applyFrom) {
+                if (Object.hasOwn(applyFrom, attr)) {
+                    if ((applyTo[attr] instanceof Object && applyFrom[attr] instanceof Object) && (typeof applyFrom[attr] !== 'function')) {
+                        this.inheritAttrs(applyTo[attr], applyFrom[attr]);
                     }
                     else {
                         applyTo[attr] = applyFrom[attr];
@@ -41,262 +41,262 @@
             return applyTo;
         },
 
-        createMerge: function( obj1, obj2 ) {
+        createMerge: function (obj1, obj2) {
             var newObj = {};
-            if ( obj1 ) {
-                this.inheritAttrs( newObj, this.cloneObj( obj1 ) );
+            if (obj1) {
+                this.inheritAttrs(newObj, this.cloneObj(obj1));
             }
-            if ( obj2 ) {
-                this.inheritAttrs( newObj, obj2 );
+            if (obj2) {
+                this.inheritAttrs(newObj, obj2);
             }
             return newObj;
         },
 
-        extend: function() {
-            if ( $ ) {
-                Array.prototype.unshift.apply( arguments, [true, {}] );
-                return $.extend.apply( $, arguments );
+        extend: function () {
+            if ($) {
+                Array.prototype.unshift.apply(arguments, [true, {}]);
+                return $.extend.apply($, arguments);
             }
             else {
-                return UTIL.createMerge.apply( this, arguments );
+                return UTIL.createMerge.apply(this, arguments);
             }
         },
 
-        cloneObj: function ( obj ) {
-            if ( Object( obj ) !== obj ) {
+        cloneObj: function (obj) {
+            if (Object(obj) !== obj) {
                 return obj;
             }
             var res = new obj.constructor();
-            for ( var key in obj ) {
-                if ( Object.hasOwn(obj, key) ) {
+            for (var key in obj) {
+                if (Object.hasOwn(obj, key)) {
                     res[key] = this.cloneObj(obj[key]);
                 }
             }
             return res;
         },
 
-        addEvent: ( el, eventType, handler ) => {
-            if ( $ ) {
-                $( el ).on( eventType+'.treant', handler );
+        addEvent: (el, eventType, handler) => {
+            if ($) {
+                $(el).on(eventType + '.triton', handler);
             }
-            else if ( el.addEventListener ) {
-                el.addEventListener( eventType, handler, false );
+            else if (el.addEventListener) {
+                el.addEventListener(eventType, handler, false);
             }
-            else if ( el.attachEvent ) {
-                el.attachEvent( 'on' + eventType, handler );
+            else if (el.attachEvent) {
+                el.attachEvent('on' + eventType, handler);
             }
             else {
                 el['on' + eventType] = handler;
             }
         },
 
-        findEl: ( selector, raw, parentEl ) => {
+        findEl: (selector, raw, parentEl) => {
             parentEl = parentEl || document;
 
-            if ( $ ) {
-                var $element = $( selector, parentEl );
-                return ( raw? $element.get( 0 ): $element );
+            if ($) {
+                var $element = $(selector, parentEl);
+                return (raw ? $element.get(0) : $element);
             }
             else {
-                if ( selector.charAt( 0 ) === '#' ) {
-                    return parentEl.getElementById( selector.substring( 1 ) );
+                if (selector.charAt(0) === '#') {
+                    return parentEl.getElementById(selector.substring(1));
                 }
-                else if ( selector.charAt( 0 ) === '.' ) {
-                    var oElements = parentEl.getElementsByClassName( selector.substring( 1 ) );
-                    return ( oElements.length? oElements[0]: null );
+                else if (selector.charAt(0) === '.') {
+                    var oElements = parentEl.getElementsByClassName(selector.substring(1));
+                    return (oElements.length ? oElements[0] : null);
                 }
 
-                throw new Error( 'Unknown container element' );
+                throw new Error('Unknown container element');
             }
         },
 
-        getOuterHeight: ( element ) => {
+        getOuterHeight: (element) => {
             var nRoundingCompensation = 1;
-            if ( typeof element.getBoundingClientRect === 'function' ) {
+            if (typeof element.getBoundingClientRect === 'function') {
                 return element.getBoundingClientRect().height;
             }
-            else if ( $ ) {
-                return Math.ceil( $( element ).outerHeight() ) + nRoundingCompensation;
+            else if ($) {
+                return Math.ceil($(element).outerHeight()) + nRoundingCompensation;
             }
             else {
                 return Math.ceil(
                     element.clientHeight
-                    + UTIL.getStyle( element, 'border-top-width', true )
-                    + UTIL.getStyle( element, 'border-bottom-width', true )
-                    + UTIL.getStyle( element, 'padding-top', true )
-                    + UTIL.getStyle( element, 'padding-bottom', true )
+                    + UTIL.getStyle(element, 'border-top-width', true)
+                    + UTIL.getStyle(element, 'border-bottom-width', true)
+                    + UTIL.getStyle(element, 'padding-top', true)
+                    + UTIL.getStyle(element, 'padding-bottom', true)
                     + nRoundingCompensation
                 );
             }
         },
 
-        getOuterWidth: ( element ) => {
+        getOuterWidth: (element) => {
             var nRoundingCompensation = 1;
-            if ( typeof element.getBoundingClientRect === 'function' ) {
+            if (typeof element.getBoundingClientRect === 'function') {
                 return element.getBoundingClientRect().width;
             }
-            else if ( $ ) {
-                return Math.ceil( $( element ).outerWidth() ) + nRoundingCompensation;
+            else if ($) {
+                return Math.ceil($(element).outerWidth()) + nRoundingCompensation;
             }
             else {
                 return Math.ceil(
                     element.clientWidth
-                    + UTIL.getStyle( element, 'border-left-width', true )
-                    + UTIL.getStyle( element, 'border-right-width', true )
-                    + UTIL.getStyle( element, 'padding-left', true )
-                    + UTIL.getStyle( element, 'padding-right', true )
+                    + UTIL.getStyle(element, 'border-left-width', true)
+                    + UTIL.getStyle(element, 'border-right-width', true)
+                    + UTIL.getStyle(element, 'padding-left', true)
+                    + UTIL.getStyle(element, 'padding-right', true)
                     + nRoundingCompensation
                 );
             }
         },
 
-        getStyle: ( element, strCssRule, asInt ) => {
+        getStyle: (element, strCssRule, asInt) => {
             var strValue = "";
-            if ( document.defaultView && document.defaultView.getComputedStyle ) {
-                strValue = document.defaultView.getComputedStyle( element, '' ).getPropertyValue( strCssRule );
+            if (document.defaultView && document.defaultView.getComputedStyle) {
+                strValue = document.defaultView.getComputedStyle(element, '').getPropertyValue(strCssRule);
             }
-            else if( element.currentStyle ) {
+            else if (element.currentStyle) {
                 strCssRule = strCssRule.replace(/-(\w)/g,
-                    (strMatch, p1)=> p1.toUpperCase()
+                    (strMatch, p1) => p1.toUpperCase()
                 );
                 strValue = element.currentStyle[strCssRule];
             }
-            return ( asInt? parseFloat( strValue ): strValue );
+            return (asInt ? parseFloat(strValue) : strValue);
         },
 
-        addClass: ( element, cssClass ) => {
-            if ( $ ) {
-                $( element ).addClass( cssClass );
+        addClass: (element, cssClass) => {
+            if ($) {
+                $(element).addClass(cssClass);
             }
             else {
-                if ( !UTIL.hasClass( element, cssClass ) ) {
-                    if ( element.classList ) {
-                        element.classList.add( cssClass );
+                if (!UTIL.hasClass(element, cssClass)) {
+                    if (element.classList) {
+                        element.classList.add(cssClass);
                     }
                     else {
-                        element.className += " "+cssClass;
+                        element.className += " " + cssClass;
                     }
                 }
             }
         },
 
-        hasClass: (element, my_class) => (" " + element.className + " ").replace(/[\n\t]/g, " ").indexOf(" "+my_class+" ") > -1,
+        hasClass: (element, my_class) => (" " + element.className + " ").replace(/[\n\t]/g, " ").indexOf(" " + my_class + " ") > -1,
 
-        toggleClass: ( element, cls, apply ) => {
-            if ( $ ) {
-                $( element ).toggleClass( cls, apply );
+        toggleClass: (element, cls, apply) => {
+            if ($) {
+                $(element).toggleClass(cls, apply);
             }
             else {
-                if ( apply ) {
-                    element.classList.add( cls );
+                if (apply) {
+                    element.classList.add(cls);
                 }
                 else {
-                    element.classList.remove( cls );
+                    element.classList.remove(cls);
                 }
             }
         },
 
-        setDimensions: ( element, width, height ) => {
-            if ( $ ) {
-                $( element ).width( width ).height( height );
+        setDimensions: (element, width, height) => {
+            if ($) {
+                $(element).width(width).height(height);
             }
             else {
-                element.style.width = width+'px';
-                element.style.height = height+'px';
+                element.style.width = width + 'px';
+                element.style.height = height + 'px';
             }
         },
         isjQueryAvailable: () => (typeof ($) !== 'undefined' && $)
     };
 
-    var ImageLoader = function() {
+    var ImageLoader = function () {
         this.reset();
     };
 
     ImageLoader.prototype = {
-        reset: function() {
+        reset: function () {
             this.loading = [];
             return this;
         },
 
-        processNode: function( node ) {
-            var aImages = node.nodeDOM.getElementsByTagName( 'img' );
+        processNode: function (node) {
+            var aImages = node.nodeDOM.getElementsByTagName('img');
             var i = aImages.length;
-            while ( i-- ) {
-                this.create( node, aImages[i] );
+            while (i--) {
+                this.create(node, aImages[i]);
             }
             return this;
         },
 
-        removeAll: function( img_src ) {
+        removeAll: function (img_src) {
             var i = this.loading.length;
-            while ( i-- ) {
-                if ( this.loading[i] === img_src ) {
-                    this.loading.splice( i, 1 );
+            while (i--) {
+                if (this.loading[i] === img_src) {
+                    this.loading.splice(i, 1);
                 }
             }
             return this;
         },
 
-        create: function ( node, image ) {
+        create: function (node, image) {
             var self = this, source = image.src;
 
             function imgTrigger() {
-                self.removeAll( source );
+                self.removeAll(source);
                 node.width = node.nodeDOM.offsetWidth;
                 node.height = node.nodeDOM.offsetHeight;
             }
 
-            if ( image.src.indexOf( 'data:' ) !== 0 ) {
-                this.loading.push( source );
+            if (image.src.indexOf('data:') !== 0) {
+                this.loading.push(source);
 
-                if ( image.complete ) {
+                if (image.complete) {
                     return imgTrigger();
                 }
 
-                UTIL.addEvent( image, 'load', imgTrigger );
-                UTIL.addEvent( image, 'error', imgTrigger );
+                UTIL.addEvent(image, 'load', imgTrigger);
+                UTIL.addEvent(image, 'error', imgTrigger);
 
-                image.src += ( ( image.src.indexOf( '?' ) > 0)? '&': '?' ) + new Date().getTime();
+                image.src += ((image.src.indexOf('?') > 0) ? '&' : '?') + new Date().getTime();
             }
             else {
                 imgTrigger();
             }
         },
 
-        isNotLoading: function() {
-            return ( this.loading.length === 0 );
+        isNotLoading: function () {
+            return (this.loading.length === 0);
         }
     };
 
     var TreeStore = {
         store: [],
 
-        createTree: function( jsonConfig ) {
+        createTree: function (jsonConfig) {
             var nNewTreeId = this.store.length;
-            this.store.push( new Tree( jsonConfig, nNewTreeId ) );
-            return this.get( nNewTreeId );
+            this.store.push(new Tree(jsonConfig, nNewTreeId));
+            return this.get(nNewTreeId);
         },
 
-        get: function ( treeId ) {
+        get: function (treeId) {
             return this.store[treeId];
         },
 
-        destroy: function( treeId ) {
-            var tree = this.get( treeId );
-            if ( tree ) {
+        destroy: function (treeId) {
+            var tree = this.get(treeId);
+            if (tree) {
                 tree._R.remove();
                 var draw_area = tree.drawArea;
 
-                while ( draw_area.firstChild ) {
-                    draw_area.removeChild( draw_area.firstChild );
+                while (draw_area.firstChild) {
+                    draw_area.removeChild(draw_area.firstChild);
                 }
 
                 var classes = draw_area.className.split(' '),
                     classes_to_stay = [];
 
-                for ( var i = 0; i < classes.length; i++ ) {
+                for (var i = 0; i < classes.length; i++) {
                     var cls = classes[i];
-                    if ( cls !== 'Treant' && cls !== 'Treant-loaded' ) {
+                    if (cls !== 'triton' && cls !== 'triton-loaded') {
                         classes_to_stay.push(cls);
                     }
                 }
@@ -310,82 +310,82 @@
         }
     };
 
-    var Tree = function (jsonConfig, treeId ) {
-        this.reset = function( jsonConfig, treeId ) {
+    var Tree = function (jsonConfig, treeId) {
+        this.reset = function (jsonConfig, treeId) {
             this.initJsonConfig = jsonConfig;
             this.initTreeId = treeId;
 
             this.id = treeId;
 
             var config = jsonConfig.config || {};
-            this.CONFIG = UTIL.extend( Tree.CONFIG, config );
-            this.drawArea = UTIL.findEl( this.CONFIG.container, true );
-            if ( !this.drawArea ) {
-                throw new Error( 'Failed to find element by selector "'+this.CONFIG.container+'"' );
+            this.CONFIG = UTIL.extend(Tree.CONFIG, config);
+            this.drawArea = UTIL.findEl(this.CONFIG.container, true);
+            if (!this.drawArea) {
+                throw new Error('Failed to find element by selector "' + this.CONFIG.container + '"');
             }
 
-            UTIL.addClass( this.drawArea, 'Treant' );
+            UTIL.addClass(this.drawArea, 'triton');
 
             this.drawArea.innerHTML = '';
 
             this.imageLoader = new ImageLoader();
 
-            this.nodeDB = new NodeDB( jsonConfig.nodes, this );
+            this.nodeDB = new NodeDB(jsonConfig.nodes, this);
 
             this.connectionStore = {};
 
             this.loaded = false;
 
-            this._R = new Raphael( this.drawArea, 100, 100 );
+            this._R = new Raphael(this.drawArea, 100, 100);
 
             return this;
         };
 
-        this.reload = function() {
-            this.reset( this.initJsonConfig, this.initTreeId ).redraw();
+        this.reload = function () {
+            this.reset(this.initJsonConfig, this.initTreeId).redraw();
             return this;
         };
 
-        this.reset( jsonConfig, treeId );
+        this.reset(jsonConfig, treeId);
     };
 
     Tree.prototype = {
-        getNodeDb: function() {
+        getNodeDb: function () {
             return this.nodeDB;
         },
 
-        addNode: function( parentTreeNode, nodeDefinition ) {
-            this.CONFIG.callback.onBeforeAddNode.apply( this, [parentTreeNode, nodeDefinition] );
+        addNode: function (parentTreeNode, nodeDefinition) {
+            this.CONFIG.callback.onBeforeAddNode.apply(this, [parentTreeNode, nodeDefinition]);
 
-            var oNewNode = this.nodeDB.createNode( nodeDefinition, parentTreeNode.id, this );
-            oNewNode.createGeometry( this );
+            var oNewNode = this.nodeDB.createNode(nodeDefinition, parentTreeNode.id, this);
+            oNewNode.createGeometry(this);
 
-            oNewNode.parent().createSwitchGeometry( this );
+            oNewNode.parent().createSwitchGeometry(this);
 
             this.positionTree();
 
-            this.CONFIG.callback.onAfterAddNode.apply( this, [oNewNode, parentTreeNode, nodeDefinition] );
+            this.CONFIG.callback.onAfterAddNode.apply(this, [oNewNode, parentTreeNode, nodeDefinition]);
 
             return oNewNode;
         },
 
-        redraw: function() {
+        redraw: function () {
             this.positionTree();
             return this;
         },
 
-        positionTree: function( callback ) {
-            if ( this.imageLoader.isNotLoading() ) {
+        positionTree: function (callback) {
+            if (this.imageLoader.isNotLoading()) {
                 var root = this.root();
 
                 this.resetLevelData();
 
-                this.firstWalk( root, 0 );
-                this.secondWalk( root, 0, 0, 0 );
+                this.firstWalk(root, 0);
+                this.secondWalk(root, 0, 0, 0);
 
                 this.positionNodes();
 
-                if ( this.CONFIG.animateOnInit ) {
+                if (this.CONFIG.animateOnInit) {
                     setTimeout(
                         () => {
                             root.toggleCollapse();
@@ -394,36 +394,36 @@
                     );
                 }
 
-                if ( !this.loaded ) {
-                    UTIL.addClass( this.drawArea, 'Treant-loaded' );
-                    if ( Object.prototype.toString.call( callback ) === "[object Function]" ) {
-                        callback( this );
+                if (!this.loaded) {
+                    UTIL.addClass(this.drawArea, 'triton-loaded');
+                    if (Object.prototype.toString.call(callback) === "[object Function]") {
+                        callback(this);
                     }
-                    this.CONFIG.callback.onTreeLoaded.apply( this, [root] );
+                    this.CONFIG.callback.onTreeLoaded.apply(this, [root]);
                     this.loaded = true;
                 }
             }
             else {
                 setTimeout(
                     () => {
-                        this.positionTree( callback );
+                        this.positionTree(callback);
                     }, 10
                 );
             }
             return this;
         },
 
-        firstWalk: function( node, level ) {
+        firstWalk: function (node, level) {
             node.prelim = null;
             node.modifier = null;
 
-            this.setNeighbors( node, level );
-            this.calcLevelDim( node, level );
+            this.setNeighbors(node, level);
+            this.calcLevelDim(node, level);
 
             var leftSibling = node.leftSibling();
 
-            if ( node.childrenCount() === 0 || level == this.CONFIG.maxDepth ) {
-                if ( leftSibling ) {
+            if (node.childrenCount() === 0 || level == this.CONFIG.maxDepth) {
+                if (leftSibling) {
                     node.prelim = leftSibling.prelim + leftSibling.size() + this.CONFIG.siblingSeparation;
                 }
                 else {
@@ -431,25 +431,25 @@
                 }
             }
             else {
-                for ( var i = 0, n = node.childrenCount(); i < n; i++ ) {
+                for (var i = 0, n = node.childrenCount(); i < n; i++) {
                     this.firstWalk(node.childAt(i), level + 1);
                 }
 
                 var midPoint = node.childrenCenter() - node.size() / 2;
 
-                if ( leftSibling ) {
+                if (leftSibling) {
                     node.prelim = leftSibling.prelim + leftSibling.size() + this.CONFIG.siblingSeparation;
                     node.modifier = node.prelim - midPoint;
-                    this.apportion( node, level );
+                    this.apportion(node, level);
                 }
                 else {
                     node.prelim = midPoint;
                 }
 
-                if ( node.stackParent ) {
-                    node.modifier += this.nodeDB.get( node.stackChildren[0] ).size()/2 + node.connStyle.stackIndent;
+                if (node.stackParent) {
+                    node.modifier += this.nodeDB.get(node.stackChildren[0]).size() / 2 + node.connStyle.stackIndent;
                 }
-                else if ( node.stackParentId ) {
+                else if (node.stackParentId) {
                     node.prelim = 0;
                 }
             }
@@ -457,44 +457,44 @@
         },
 
         apportion: function (node, level) {
-            var firstChild              = node.firstChild(),
-                firstChildLeftNeighbor  = firstChild.leftNeighbor(),
-                compareDepth            = 1,
-                depthToStop             = this.CONFIG.maxDepth - level;
+            var firstChild = node.firstChild(),
+                firstChildLeftNeighbor = firstChild.leftNeighbor(),
+                compareDepth = 1,
+                depthToStop = this.CONFIG.maxDepth - level;
 
-            while( firstChild && firstChildLeftNeighbor && compareDepth <= depthToStop ) {
-                var modifierSumRight    = 0,
-                    modifierSumLeft     = 0,
-                    leftAncestor        = firstChildLeftNeighbor,
-                    rightAncestor       = firstChild;
+            while (firstChild && firstChildLeftNeighbor && compareDepth <= depthToStop) {
+                var modifierSumRight = 0,
+                    modifierSumLeft = 0,
+                    leftAncestor = firstChildLeftNeighbor,
+                    rightAncestor = firstChild;
 
-                for ( var i = 0; i < compareDepth; i++ ) {
+                for (var i = 0; i < compareDepth; i++) {
                     leftAncestor = leftAncestor.parent();
                     rightAncestor = rightAncestor.parent();
                     modifierSumLeft += leftAncestor.modifier;
                     modifierSumRight += rightAncestor.modifier;
 
-                    if ( rightAncestor.stackParent !== undefined ) {
+                    if (rightAncestor.stackParent !== undefined) {
                         modifierSumRight += rightAncestor.size() / 2;
                     }
                 }
 
-                var totalGap = (firstChildLeftNeighbor.prelim + modifierSumLeft + firstChildLeftNeighbor.size() + this.CONFIG.subTeeSeparation) - (firstChild.prelim + modifierSumRight );
+                var totalGap = (firstChildLeftNeighbor.prelim + modifierSumLeft + firstChildLeftNeighbor.size() + this.CONFIG.subTeeSeparation) - (firstChild.prelim + modifierSumRight);
 
-                if ( totalGap > 0 ) {
+                if (totalGap > 0) {
                     var subtreeAux = node,
                         numSubtrees = 0;
 
-                    while ( subtreeAux && subtreeAux.id !== leftAncestor.id ) {
+                    while (subtreeAux && subtreeAux.id !== leftAncestor.id) {
                         subtreeAux = subtreeAux.leftSibling();
                         numSubtrees++;
                     }
 
-                    if ( subtreeAux ) {
+                    if (subtreeAux) {
                         var subtreeMoveAux = node,
                             singleGap = totalGap / numSubtrees;
 
-                        while ( subtreeMoveAux.id !== leftAncestor.id ) {
+                        while (subtreeMoveAux.id !== leftAncestor.id) {
                             subtreeMoveAux.prelim += totalGap;
                             subtreeMoveAux.modifier += totalGap;
 
@@ -506,18 +506,18 @@
 
                 compareDepth++;
 
-                firstChild = ( firstChild.childrenCount() === 0 )?
-                    node.leftMost(0, compareDepth):
+                firstChild = (firstChild.childrenCount() === 0) ?
+                    node.leftMost(0, compareDepth) :
                     firstChild = firstChild.firstChild();
 
-                if ( firstChild ) {
+                if (firstChild) {
                     firstChildLeftNeighbor = firstChild.leftNeighbor();
                 }
             }
         },
 
-        secondWalk: function( node, level, X, Y ) {
-            if ( level > this.CONFIG.maxDepth ) {
+        secondWalk: function (node, level, X, Y) {
+            if (level > this.CONFIG.maxDepth) {
                 return;
             }
 
@@ -551,26 +551,26 @@
                     node.Y = (yTmp + (levelHeight - nodesizeTmp));
                 }
             } else {
-                node.Y = ( align === 'CENTER' ) ? (yTmp + (levelHeight - nodesizeTmp) / 2) :
-                    ( align === 'TOP' )  ? (yTmp + (levelHeight - nodesizeTmp)) :
+                node.Y = (align === 'CENTER') ? (yTmp + (levelHeight - nodesizeTmp) / 2) :
+                    (align === 'TOP') ? (yTmp + (levelHeight - nodesizeTmp)) :
                         yTmp;
             }
 
-            if ( orient === 'WEST' || orient === 'EAST' ) {
+            if (orient === 'WEST' || orient === 'EAST') {
                 var swapTmp = node.X;
                 node.X = node.Y;
                 node.Y = swapTmp;
             }
 
-            if (orient === 'SOUTH' ) {
+            if (orient === 'SOUTH') {
                 node.Y = -node.Y - nodesizeTmp;
             }
-            else if ( orient === 'EAST' ) {
+            else if (orient === 'EAST') {
                 node.X = -node.X - nodesizeTmp;
             }
 
-            if ( node.childrenCount() !== 0 ) {
-                if ( node.id === 0 && this.CONFIG.hideRootNode ) {
+            if (node.childrenCount() !== 0) {
+                if (node.id === 0 && this.CONFIG.hideRootNode) {
                     this.secondWalk(node.firstChild(), level + 1, X + node.modifier, Y);
                 }
                 else {
@@ -578,31 +578,31 @@
                 }
             }
 
-            if ( node.rightSibling() ) {
-                this.secondWalk( node.rightSibling(), level, X, Y );
+            if (node.rightSibling()) {
+                this.secondWalk(node.rightSibling(), level, X, Y);
             }
         },
 
-        positionNodes: function() {
+        positionNodes: function () {
             var treeSize = {
-                    x: this.nodeDB.getMinMaxCoord('X', null, null),
-                    y: this.nodeDB.getMinMaxCoord('Y', null, null)
-                },
+                x: this.nodeDB.getMinMaxCoord('X', null, null),
+                y: this.nodeDB.getMinMaxCoord('Y', null, null)
+            },
 
                 treeWidth = treeSize.x.max - treeSize.x.min,
                 treeHeight = treeSize.y.max - treeSize.y.min,
 
                 treeCenter = {
-                    x: treeSize.x.max - treeWidth/2,
-                    y: treeSize.y.max - treeHeight/2
+                    x: treeSize.x.max - treeWidth / 2,
+                    y: treeSize.y.max - treeHeight / 2
                 };
 
             this.handleOverflow(treeWidth, treeHeight);
 
             var containerCenter = {
-                    x: this.drawArea.clientWidth/2,
-                    y: this.drawArea.clientHeight/2
-                },
+                x: this.drawArea.clientWidth / 2,
+                y: this.drawArea.clientHeight / 2
+            },
 
                 deltaX = containerCenter.x - treeCenter.x,
                 deltaY = containerCenter.y - treeCenter.y,
@@ -612,13 +612,13 @@
             deltaX = Math.max(this.CONFIG.padding - treeSize.x.min, deltaX);
             deltaY = Math.max(this.CONFIG.padding - treeSize.y.min, deltaY);
 
-            for ( i = 0, len = this.nodeDB.db.length; i < len; i++ ) {
+            for (i = 0, len = this.nodeDB.db.length; i < len; i++) {
                 node = this.nodeDB.get(i);
 
-                this.CONFIG.callback.onBeforePositionNode.apply( this, [node, i, containerCenter, treeCenter] );
+                this.CONFIG.callback.onBeforePositionNode.apply(this, [node, i, containerCenter, treeCenter]);
 
-                if ( node.id === 0 && this.CONFIG.hideRootNode ) {
-                    this.CONFIG.callback.onAfterPositionNode.apply( this, [node, i, containerCenter, treeCenter] );
+                if (node.id === 0 && this.CONFIG.hideRootNode) {
+                    this.CONFIG.callback.onAfterPositionNode.apply(this, [node, i, containerCenter, treeCenter]);
                     continue;
                 }
 
@@ -629,7 +629,7 @@
                     hidePoint = null;
 
                 if (collapsedParent) {
-                    hidePoint = collapsedParent.connectorPoint( true );
+                    hidePoint = collapsedParent.connectorPoint(true);
                     node.hide(hidePoint);
                 }
                 else if (node.positioned) {
@@ -650,55 +650,54 @@
 
                 // Draw extra parent connectors (converging edges)
                 if (node.extraParentIds && node.extraParentIds.length) {
-                    var self = this;
-                    node.extraParentIds.forEach(function(extraParentId) {
-                        var extraParent = self.nodeDB.get(extraParentId);
+                    node.extraParentIds.forEach((extraParentId) => {
+                        var extraParent = this.nodeDB.get(extraParentId);
                         if (extraParent && !extraParent.pseudo) {
                             var pathString = hidePoint
-                                ? self.getPointPathString(hidePoint)
-                                : self.getPathString(extraParent, node, false);
+                                ? this.getPointPathString(hidePoint)
+                                : this.getPathString(extraParent, node, false);
 
-                            var connLine = self._R.path(pathString);
+                            var connLine = this._R.path(pathString);
                             connLine.attr(extraParent.connStyle.style);
                             connLine.toBack();
                         }
                     });
                 }
 
-                this.CONFIG.callback.onAfterPositionNode.apply( this, [node, i, containerCenter, treeCenter] );
+                this.CONFIG.callback.onAfterPositionNode.apply(this, [node, i, containerCenter, treeCenter]);
             }
             return this;
         },
 
-        handleOverflow: function( treeWidth, treeHeight ) {
-            var viewWidth = (treeWidth < this.drawArea.clientWidth) ? this.drawArea.clientWidth : treeWidth + this.CONFIG.padding*2,
-                viewHeight = (treeHeight < this.drawArea.clientHeight) ? this.drawArea.clientHeight : treeHeight + this.CONFIG.padding*2;
+        handleOverflow: function (treeWidth, treeHeight) {
+            var viewWidth = (treeWidth < this.drawArea.clientWidth) ? this.drawArea.clientWidth : treeWidth + this.CONFIG.padding * 2,
+                viewHeight = (treeHeight < this.drawArea.clientHeight) ? this.drawArea.clientHeight : treeHeight + this.CONFIG.padding * 2;
 
-            this._R.setSize( viewWidth, viewHeight );
+            this._R.setSize(viewWidth, viewHeight);
 
-            if ( this.CONFIG.scrollbar === 'resize') {
-                UTIL.setDimensions( this.drawArea, viewWidth, viewHeight );
+            if (this.CONFIG.scrollbar === 'resize') {
+                UTIL.setDimensions(this.drawArea, viewWidth, viewHeight);
             }
-            else if ( !UTIL.isjQueryAvailable() || this.CONFIG.scrollbar === 'native' ) {
-                if ( this.drawArea.clientWidth < treeWidth ) {
+            else if (!UTIL.isjQueryAvailable() || this.CONFIG.scrollbar === 'native') {
+                if (this.drawArea.clientWidth < treeWidth) {
                     this.drawArea.style.overflowX = "auto";
                 }
-                if ( this.drawArea.clientHeight < treeHeight ) {
+                if (this.drawArea.clientHeight < treeHeight) {
                     this.drawArea.style.overflowY = "auto";
                 }
             }
-            else if ( this.CONFIG.scrollbar === 'fancy') {
-                var jq_drawArea = $( this.drawArea );
+            else if (this.CONFIG.scrollbar === 'fancy') {
+                var jq_drawArea = $(this.drawArea);
                 if (jq_drawArea.hasClass('ps-container')) {
-                    jq_drawArea.find('.Treant').css({
+                    jq_drawArea.find('.triton').css({
                         width: viewWidth,
                         height: viewHeight
                     });
                     jq_drawArea.perfectScrollbar('update');
                 }
                 else {
-                    var mainContainer = jq_drawArea.wrapInner('<div class="Treant"/>'),
-                        child = mainContainer.find('.Treant');
+                    var mainContainer = jq_drawArea.wrapInner('<div class="triton"/>'),
+                        child = mainContainer.find('.triton');
 
                     child.css({
                         width: viewWidth,
@@ -711,43 +710,43 @@
             return this;
         },
 
-        setConnectionToParent: function( treeNode, hidePoint ) {
+        setConnectionToParent: function (treeNode, hidePoint) {
             var stacked = treeNode.stackParentId,
                 connLine,
-                parent = ( stacked? this.nodeDB.get( stacked ): treeNode.parent() ),
+                parent = (stacked ? this.nodeDB.get(stacked) : treeNode.parent()),
 
-                pathString = hidePoint?
-                    this.getPointPathString(hidePoint):
+                pathString = hidePoint ?
+                    this.getPointPathString(hidePoint) :
                     this.getPathString(parent, treeNode, stacked);
 
-            if ( this.connectionStore[treeNode.id] ) {
+            if (this.connectionStore[treeNode.id]) {
                 connLine = this.connectionStore[treeNode.id];
-                this.animatePath( connLine, pathString );
+                this.animatePath(connLine, pathString);
             }
             else {
-                connLine = this._R.path( pathString );
+                connLine = this._R.path(pathString);
                 this.connectionStore[treeNode.id] = connLine;
 
-                if ( treeNode.pseudo ) {
+                if (treeNode.pseudo) {
                     delete parent.connStyle.style['arrow-end'];
                 }
-                if ( parent.pseudo ) {
+                if (parent.pseudo) {
                     delete parent.connStyle.style['arrow-start'];
                 }
 
-                connLine.attr( parent.connStyle.style );
+                connLine.attr(parent.connStyle.style);
 
-                if ( treeNode.drawLineThrough || treeNode.pseudo ) {
-                    treeNode.drawLineThroughMe( hidePoint );
+                if (treeNode.drawLineThrough || treeNode.pseudo) {
+                    treeNode.drawLineThroughMe(hidePoint);
                 }
             }
             treeNode.connector = connLine;
             return this;
         },
 
-        getPointPathString: ( hidePoint ) => ["_M", hidePoint.x, ",", hidePoint.y, 'L', hidePoint.x, ",", hidePoint.y, hidePoint.x, ",", hidePoint.y].join(' '),
+        getPointPathString: (hidePoint) => ["_M", hidePoint.x, ",", hidePoint.y, 'L', hidePoint.x, ",", hidePoint.y, hidePoint.x, ",", hidePoint.y].join(' '),
 
-        animatePath: function( path, pathString ) {
+        animatePath: function (path, pathString) {
             if (path.hidden && pathString.charAt(0) !== "_") {
                 path.show();
                 path.hidden = false;
@@ -755,14 +754,14 @@
 
             path.animate(
                 {
-                    path: pathString.charAt(0) === "_"?
-                        pathString.substring(1):
+                    path: pathString.charAt(0) === "_" ?
+                        pathString.substring(1) :
                         pathString
                 },
                 this.CONFIG.animation.connectorsSpeed,
                 this.CONFIG.animation.connectorsAnimation,
                 () => {
-                    if ( pathString.charAt(0) === "_" ) {
+                    if (pathString.charAt(0) === "_") {
                         path.hide();
                         path.hidden = true;
                     }
@@ -771,65 +770,65 @@
             return this;
         },
 
-        getPathString: function( from_node, to_node, stacked ) {
-            var startPoint = from_node.connectorPoint( true ),
-                endPoint = to_node.connectorPoint( false ),
+        getPathString: function (from_node, to_node, stacked) {
+            var startPoint = from_node.connectorPoint(true),
+                endPoint = to_node.connectorPoint(false),
                 orientation = this.CONFIG.rootOrientation,
                 connType = from_node.connStyle.type,
                 P1 = {}, P2 = {};
 
-            if ( orientation === 'NORTH' || orientation === 'SOUTH' ) {
+            if (orientation === 'NORTH' || orientation === 'SOUTH') {
                 P1.y = P2.y = (startPoint.y + endPoint.y) / 2;
                 P1.x = startPoint.x;
                 P2.x = endPoint.x;
             }
-            else if ( orientation === 'EAST' || orientation === 'WEST' ) {
+            else if (orientation === 'EAST' || orientation === 'WEST') {
                 P1.x = P2.x = (startPoint.x + endPoint.x) / 2;
                 P1.y = startPoint.y;
                 P2.y = endPoint.y;
             }
 
-            var sp = startPoint.x+','+startPoint.y, p1 = P1.x+','+P1.y, p2 = P2.x+','+P2.y, ep = endPoint.x+','+endPoint.y,
-                pm = (P1.x + P2.x)/2 +','+ (P1.y + P2.y)/2, pathString, stackPoint;
+            var sp = startPoint.x + ',' + startPoint.y, p1 = P1.x + ',' + P1.y, p2 = P2.x + ',' + P2.y, ep = endPoint.x + ',' + endPoint.y,
+                pm = (P1.x + P2.x) / 2 + ',' + (P1.y + P2.y) / 2, pathString, stackPoint;
 
-            if ( stacked ) {
-                stackPoint = (orientation === 'EAST' || orientation === 'WEST')?
-                endPoint.x+','+startPoint.y:
-                startPoint.x+','+endPoint.y;
+            if (stacked) {
+                stackPoint = (orientation === 'EAST' || orientation === 'WEST') ?
+                    endPoint.x + ',' + startPoint.y :
+                    startPoint.x + ',' + endPoint.y;
 
-                if ( connType === "step" || connType === "straight" ) {
+                if (connType === "step" || connType === "straight") {
                     pathString = ["M", sp, 'L', stackPoint, 'L', ep];
                 }
-                else if ( connType === "curve" || connType === "bCurve" ) {
+                else if (connType === "curve" || connType === "bCurve") {
                     var helpPoint,
                         indent = from_node.connStyle.stackIndent;
 
-                    if ( orientation === 'NORTH' ) {
-                        helpPoint = (endPoint.x - indent)+','+(endPoint.y - indent);
+                    if (orientation === 'NORTH') {
+                        helpPoint = (endPoint.x - indent) + ',' + (endPoint.y - indent);
                     }
-                    else if ( orientation === 'SOUTH' ) {
-                        helpPoint = (endPoint.x - indent)+','+(endPoint.y + indent);
+                    else if (orientation === 'SOUTH') {
+                        helpPoint = (endPoint.x - indent) + ',' + (endPoint.y + indent);
                     }
-                    else if ( orientation === 'EAST' ) {
-                        helpPoint = (endPoint.x + indent) +','+startPoint.y;
+                    else if (orientation === 'EAST') {
+                        helpPoint = (endPoint.x + indent) + ',' + startPoint.y;
                     }
-                    else if ( orientation === 'WEST' ) {
-                        helpPoint = (endPoint.x - indent) +','+startPoint.y;
+                    else if (orientation === 'WEST') {
+                        helpPoint = (endPoint.x - indent) + ',' + startPoint.y;
                     }
                     pathString = ["M", sp, 'L', helpPoint, 'S', stackPoint, ep];
                 }
             }
             else {
-                if ( connType === "step" ) {
+                if (connType === "step") {
                     pathString = ["M", sp, 'L', p1, 'L', p2, 'L', ep];
                 }
-                else if ( connType === "curve" ) {
-                    pathString = ["M", sp, 'C', p1, p2, ep ];
+                else if (connType === "curve") {
+                    pathString = ["M", sp, 'C', p1, p2, ep];
                 }
-                else if ( connType === "bCurve" ) {
+                else if (connType === "bCurve") {
                     pathString = ["M", sp, 'Q', p1, pm, 'T', ep];
                 }
-                else if (connType === "straight" ) {
+                else if (connType === "straight") {
                     pathString = ["M", sp, 'L', sp, ep];
                 }
             }
@@ -837,46 +836,44 @@
             return pathString.join(" ");
         },
 
-        setNeighbors: function( node, level ) {
+        setNeighbors: function (node, level) {
             node.leftNeighborId = this.lastNodeOnLevel[level];
-            if ( node.leftNeighborId ) {
+            if (node.leftNeighborId) {
                 node.leftNeighbor().rightNeighborId = node.id;
             }
             this.lastNodeOnLevel[level] = node.id;
             return this;
         },
 
-        calcLevelDim: function( node, level ) {
+        calcLevelDim: function (node, level) {
             this.levelMaxDim[level] = {
-                width: Math.max( this.levelMaxDim[level]? this.levelMaxDim[level].width: 0, node.width ),
-                height: Math.max( this.levelMaxDim[level]? this.levelMaxDim[level].height: 0, node.height )
+                width: Math.max(this.levelMaxDim[level] ? this.levelMaxDim[level].width : 0, node.width),
+                height: Math.max(this.levelMaxDim[level] ? this.levelMaxDim[level].height : 0, node.height)
             };
             return this;
         },
 
-        resetLevelData: function() {
+        resetLevelData: function () {
             this.lastNodeOnLevel = [];
             this.levelMaxDim = [];
             return this;
         },
 
-        root: function() {
-            return this.nodeDB.get( 0 );
+        root: function () {
+            return this.nodeDB.get(0);
         }
     };
 
-    var NodeDB = function ( nodesConfig, tree ) {
-        this.reset( nodesConfig, tree );
+    var NodeDB = function (nodesConfig, tree) {
+        this.reset(nodesConfig, tree);
     };
 
     NodeDB.prototype = {
-        reset: function( nodesConfig, tree ) {
+        reset: function (nodesConfig, tree) {
             this.db = [];
             this.userIdMap = {};
 
-            var self = this;
-
-            if ( !nodesConfig || !Array.isArray(nodesConfig) || nodesConfig.length === 0 ) {
+            if (!nodesConfig || !Array.isArray(nodesConfig) || nodesConfig.length === 0) {
                 return this;
             }
 
@@ -885,27 +882,27 @@
             var allUserIds = {};
             var hasParent = {};
 
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
                 allUserIds[uid] = true;
             });
 
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
                 var parent = nodeDef.parent;
                 if (parent !== undefined && parent !== null) {
                     hasParent[uid] = true;
                     var parentIds = Array.isArray(parent) ? parent : [parent];
-                    parentIds.forEach(function(pid) {
+                    parentIds.forEach((pid) => {
                         var pidStr = String(pid);
                         if (!allUserIds[pidStr]) {
-                            console.warn('Treant: parent "'+pidStr+'" not found for node "'+uid+'"');
+                            console.warn('triton: parent "' + pidStr + '" not found for node "' + uid + '"');
                         }
                     });
                 }
             });
 
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
                 if (!hasParent[uid]) {
                     rootUserIds.push(nodeDef.id);
@@ -930,27 +927,27 @@
             }
 
             // First pass: create all user nodes
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
-                var internalId = self.db.length;
-                self.userIdMap[uid] = internalId;
+                var internalId = this.db.length;
+                this.userIdMap[uid] = internalId;
 
                 var node = new TreeNode(nodeDef, internalId, -1, tree, null);
-                self.db.push(node);
+                this.db.push(node);
             });
 
             // Pass 2a: resolve parent relationships (must come before children)
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
-                var internalId = self.userIdMap[uid];
-                var node = self.db[internalId];
+                var internalId = this.userIdMap[uid];
+                var node = this.db[internalId];
 
                 if (nodeDef.parent === undefined || nodeDef.parent === null) return;
 
                 var parentIds = Array.isArray(nodeDef.parent) ? nodeDef.parent : [nodeDef.parent];
-                parentIds.forEach(function(parentId, idx) {
+                parentIds.forEach((parentId, idx) => {
                     var parentUid = String(parentId);
-                    var parentInternalId = self.userIdMap[parentUid];
+                    var parentInternalId = this.userIdMap[parentUid];
                     if (parentInternalId === undefined) return;
 
                     if (idx === 0) {
@@ -962,20 +959,20 @@
             });
 
             // Pass 2b: resolve children (after parent — now we can check primary parent)
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 var uid = String(nodeDef.id);
-                var internalId = self.userIdMap[uid];
-                var node = self.db[internalId];
+                var internalId = this.userIdMap[uid];
+                var node = this.db[internalId];
 
                 if (nodeDef.children === undefined || nodeDef.children === null) return;
 
                 var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
-                childIds.forEach(function(childId) {
+                childIds.forEach((childId) => {
                     var childUid = String(childId);
-                    var childInternalId = self.userIdMap[childUid];
+                    var childInternalId = this.userIdMap[childUid];
                     if (childInternalId === undefined) return;
 
-                    var childNode = self.db[childInternalId];
+                    var childNode = this.db[childInternalId];
                     if (childNode.parentId === -1 || childNode.parentId === internalId) {
                         node.children.push(childInternalId);
                     }
@@ -983,24 +980,24 @@
             });
 
             // Ensure children that have explicit parent are still in that parent's children list
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 if (!nodeDef.children) return;
                 var parentUid = String(nodeDef.id);
-                var parentInternalId = self.userIdMap[parentUid];
+                var parentInternalId = this.userIdMap[parentUid];
                 if (parentInternalId === undefined) return;
 
                 var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
-                childIds.forEach(function(childId) {
+                childIds.forEach((childId) => {
                     var childUid = String(childId);
-                    var childInternalId = self.userIdMap[childUid];
+                    var childInternalId = this.userIdMap[childUid];
                     if (childInternalId === undefined) return;
 
-                    var childNode = self.db[childInternalId];
+                    var childNode = this.db[childInternalId];
                     // Only set parent if child doesn't have one yet
                     if (childNode.parentId === -1) {
                         childNode.parentId = parentInternalId;
                         // Also add to this parent's children if not already there
-                        var parentNode = self.db[parentInternalId];
+                        var parentNode = this.db[parentInternalId];
                         if (parentNode.children.indexOf(childInternalId) === -1) {
                             parentNode.children.push(childInternalId);
                         }
@@ -1010,19 +1007,19 @@
 
             // Detect implicit extra parents: parent lists child in children
             // but child's primary parent is someone else
-            nodesConfig.forEach(function(nodeDef) {
+            nodesConfig.forEach((nodeDef) => {
                 if (!nodeDef.children) return;
                 var parentUid = String(nodeDef.id);
-                var parentInternalId = self.userIdMap[parentUid];
+                var parentInternalId = this.userIdMap[parentUid];
                 if (parentInternalId === undefined) return;
 
                 var childIds = Array.isArray(nodeDef.children) ? nodeDef.children : [nodeDef.children];
-                childIds.forEach(function(childId) {
+                childIds.forEach((childId) => {
                     var childUid = String(childId);
-                    var childInternalId = self.userIdMap[childUid];
+                    var childInternalId = this.userIdMap[childUid];
                     if (childInternalId === undefined) return;
 
-                    var childNode = self.db[childInternalId];
+                    var childNode = this.db[childInternalId];
                     if (childNode.parentId !== -1 && childNode.parentId !== parentInternalId) {
                         // This parent wants this child, but isn't the primary parent,
                         // so it's an extra parent connector
@@ -1067,90 +1064,90 @@
             return this;
         },
 
-        createGeometries: function( tree ) {
+        createGeometries: function (tree) {
             var i = this.db.length;
-            while ( i-- ) {
-                this.get( i ).createGeometry( tree );
+            while (i--) {
+                this.get(i).createGeometry(tree);
             }
             return this;
         },
 
-        get: function ( nodeId ) {
+        get: function (nodeId) {
             return this.db[nodeId];
         },
 
-        walk: function( callback ) {
+        walk: function (callback) {
             var i = this.db.length;
-            while ( i-- ) {
-                callback.apply( this, [ this.get( i ) ] );
+            while (i--) {
+                callback.apply(this, [this.get(i)]);
             }
             return this;
         },
 
-        createNode: function( nodeStructure, parentId, tree, stackParentId ) {
-            var node = new TreeNode( nodeStructure, this.db.length, parentId, tree, stackParentId );
-            this.db.push( node );
+        createNode: function (nodeStructure, parentId, tree, stackParentId) {
+            var node = new TreeNode(nodeStructure, this.db.length, parentId, tree, stackParentId);
+            this.db.push(node);
 
-            if ( parentId >= 0 ) {
-                var parent = this.get( parentId );
+            if (parentId >= 0) {
+                var parent = this.get(parentId);
 
-                if ( nodeStructure.position ) {
-                    if ( nodeStructure.position === 'left' ) {
-                        parent.children.push( node.id );
+                if (nodeStructure.position) {
+                    if (nodeStructure.position === 'left') {
+                        parent.children.push(node.id);
                     }
-                    else if ( nodeStructure.position === 'right' ) {
-                        parent.children.splice( 0, 0, node.id );
+                    else if (nodeStructure.position === 'right') {
+                        parent.children.splice(0, 0, node.id);
                     }
-                    else if ( nodeStructure.position === 'center' ) {
-                        parent.children.splice( Math.floor( parent.children.length / 2 ), 0, node.id );
+                    else if (nodeStructure.position === 'center') {
+                        parent.children.splice(Math.floor(parent.children.length / 2), 0, node.id);
                     }
                     else {
-                        var position = parseInt( nodeStructure.position );
-                        if ( parent.children.length === 1 && position > 0 ) {
-                            parent.children.splice( 0, 0, node.id );
+                        var position = parseInt(nodeStructure.position);
+                        if (parent.children.length === 1 && position > 0) {
+                            parent.children.splice(0, 0, node.id);
                         }
                         else {
                             parent.children.splice(
-                                Math.max( position, parent.children.length - 1 ),
+                                Math.max(position, parent.children.length - 1),
                                 0, node.id
                             );
                         }
                     }
                 }
                 else {
-                    parent.children.push( node.id );
+                    parent.children.push(node.id);
                 }
             }
 
-            if ( stackParentId ) {
-                this.get( stackParentId ).stackParent = true;
-                this.get( stackParentId ).stackChildren.push( node.id );
+            if (stackParentId) {
+                this.get(stackParentId).stackParent = true;
+                this.get(stackParentId).stackChildren.push(node.id);
             }
 
             return node;
         },
 
-        getMinMaxCoord: function( dim, parent, MinMax ) {
+        getMinMaxCoord: function (dim, parent, MinMax) {
             parent = parent || this.get(0);
             MinMax = MinMax || {
-                    min: parent[dim],
-                    max: parent[dim] + ( ( dim === 'X' )? parent.width: parent.height )
-                };
+                min: parent[dim],
+                max: parent[dim] + ((dim === 'X') ? parent.width : parent.height)
+            };
 
             var i = parent.childrenCount();
-            while ( i-- ) {
-                var node = parent.childAt( i ),
-                    maxTest = node[dim] + ( ( dim === 'X' )? node.width: node.height ),
+            while (i--) {
+                var node = parent.childAt(i),
+                    maxTest = node[dim] + ((dim === 'X') ? node.width : node.height),
                     minTest = node[dim];
 
-                if ( maxTest > MinMax.max ) {
+                if (maxTest > MinMax.max) {
                     MinMax.max = maxTest;
                 }
-                if ( minTest < MinMax.min ) {
+                if (minTest < MinMax.min) {
                     MinMax.min = minTest;
                 }
 
-                this.getMinMaxCoord( dim, node, MinMax );
+                this.getMinMaxCoord(dim, node, MinMax);
             }
             return MinMax;
         },
@@ -1166,12 +1163,12 @@
         }
     };
 
-    var TreeNode = function( nodeStructure, id, parentId, tree, stackParentId ) {
-        this.reset( nodeStructure, id, parentId, tree, stackParentId );
+    var TreeNode = function (nodeStructure, id, parentId, tree, stackParentId) {
+        this.reset(nodeStructure, id, parentId, tree, stackParentId);
     };
 
     TreeNode.prototype = {
-        reset: function( nodeStructure, id, parentId, tree, stackParentId ) {
+        reset: function (nodeStructure, id, parentId, tree, stackParentId) {
             this.id = id;
             this.userId = nodeStructure.id || '__internal__';
             this.parentId = parentId;
@@ -1189,12 +1186,12 @@
 
             this.link = nodeStructure.link || '';
 
-            this.connStyle = UTIL.createMerge( tree.CONFIG.connectors, nodeStructure.connectors );
+            this.connStyle = UTIL.createMerge(tree.CONFIG.connectors, nodeStructure.connectors);
             this.connector = null;
 
-            this.drawLineThrough = nodeStructure.drawLineThrough === false ? false : ( nodeStructure.drawLineThrough || tree.CONFIG.node.drawLineThrough );
+            this.drawLineThrough = nodeStructure.drawLineThrough === false ? false : (nodeStructure.drawLineThrough || tree.CONFIG.node.drawLineThrough);
 
-            this.collapsable = nodeStructure.collapsable === false ? false : ( nodeStructure.collapsable || tree.CONFIG.node.collapsable );
+            this.collapsable = nodeStructure.collapsable === false ? false : (nodeStructure.collapsable || tree.CONFIG.node.collapsable);
             this.collapsed = nodeStructure.collapsed;
 
             this.text = nodeStructure.text || '';
@@ -1212,87 +1209,87 @@
             return this;
         },
 
-        getTree: function() {
-            return TreeStore.get( this.treeId );
+        getTree: function () {
+            return TreeStore.get(this.treeId);
         },
 
-        getTreeConfig: function() {
+        getTreeConfig: function () {
             return this.getTree().CONFIG;
         },
 
-        getTreeNodeDb: function() {
+        getTreeNodeDb: function () {
             return this.getTree().getNodeDb();
         },
 
-        lookupNode: function( nodeId ) {
-            return this.getTreeNodeDb().get( nodeId );
+        lookupNode: function (nodeId) {
+            return this.getTreeNodeDb().get(nodeId);
         },
 
-        Tree: function() {
-            return TreeStore.get( this.treeId );
+        Tree: function () {
+            return TreeStore.get(this.treeId);
         },
 
-        dbGet: function( nodeId ) {
-            return this.getTreeNodeDb().get( nodeId );
+        dbGet: function (nodeId) {
+            return this.getTreeNodeDb().get(nodeId);
         },
 
-        size: function() {
+        size: function () {
             var orientation = this.getTreeConfig().rootOrientation;
 
-            if ( this.pseudo ) {
-                return ( -this.getTreeConfig().subTeeSeparation );
+            if (this.pseudo) {
+                return (-this.getTreeConfig().subTeeSeparation);
             }
 
-            if ( orientation === 'NORTH' || orientation === 'SOUTH' ) {
+            if (orientation === 'NORTH' || orientation === 'SOUTH') {
                 return this.width;
             }
-            else if ( orientation === 'WEST' || orientation === 'EAST' ) {
+            else if (orientation === 'WEST' || orientation === 'EAST') {
                 return this.height;
             }
         },
 
         childrenCount: function () {
-            return ( ( this.collapsed || !this.children)? 0: this.children.length );
+            return ((this.collapsed || !this.children) ? 0 : this.children.length);
         },
 
-        childAt: function( index ) {
-            return this.dbGet( this.children[index] );
+        childAt: function (index) {
+            return this.dbGet(this.children[index]);
         },
 
-        firstChild: function() {
-            return this.childAt( 0 );
+        firstChild: function () {
+            return this.childAt(0);
         },
 
-        lastChild: function() {
-            return this.childAt( this.children.length - 1 );
+        lastChild: function () {
+            return this.childAt(this.children.length - 1);
         },
 
-        parent: function() {
-            return this.lookupNode( this.parentId );
+        parent: function () {
+            return this.lookupNode(this.parentId);
         },
 
-        leftNeighbor: function() {
-            if ( this.leftNeighborId ) {
-                return this.lookupNode( this.leftNeighborId );
+        leftNeighbor: function () {
+            if (this.leftNeighborId) {
+                return this.lookupNode(this.leftNeighborId);
             }
         },
 
-        rightNeighbor: function() {
-            if ( this.rightNeighborId ) {
-                return this.lookupNode( this.rightNeighborId );
+        rightNeighbor: function () {
+            if (this.rightNeighborId) {
+                return this.lookupNode(this.rightNeighborId);
             }
         },
 
         leftSibling: function () {
             var leftNeighbor = this.leftNeighbor();
-            if ( leftNeighbor && leftNeighbor.parentId === this.parentId ){
+            if (leftNeighbor && leftNeighbor.parentId === this.parentId) {
                 return leftNeighbor;
             }
         },
 
         rightSibling: function () {
             var rightNeighbor = this.rightNeighbor();
-            if ( rightNeighbor && rightNeighbor.parentId === this.parentId ) {
+            if (rightNeighbor && rightNeighbor.parentId === this.parentId) {
                 return rightNeighbor;
             }
         },
@@ -1300,147 +1297,147 @@
         childrenCenter: function () {
             var first = this.firstChild(),
                 last = this.lastChild();
-            return ( first.prelim + ((last.prelim - first.prelim) + last.size()) / 2 );
+            return (first.prelim + ((last.prelim - first.prelim) + last.size()) / 2);
         },
 
-        collapsedParent: function() {
+        collapsedParent: function () {
             var parent = this.parent();
-            if ( !parent ) {
+            if (!parent) {
                 return false;
             }
-            if ( parent.collapsed ) {
+            if (parent.collapsed) {
                 return parent;
             }
             return parent.collapsedParent();
         },
 
-        leftMost: function ( level, depth ) {
-            if ( level >= depth ) {
+        leftMost: function (level, depth) {
+            if (level >= depth) {
                 return this;
             }
-            if ( this.childrenCount() === 0 ) {
+            if (this.childrenCount() === 0) {
                 return;
             }
 
-            for ( var i = 0, n = this.childrenCount(); i < n; i++ ) {
-                var leftmostDescendant = this.childAt( i ).leftMost( level + 1, depth );
-                if ( leftmostDescendant ) {
+            for (var i = 0, n = this.childrenCount(); i < n; i++) {
+                var leftmostDescendant = this.childAt(i).leftMost(level + 1, depth);
+                if (leftmostDescendant) {
                     return leftmostDescendant;
                 }
             }
         },
 
-        connectorPoint: function(startPoint) {
+        connectorPoint: function (startPoint) {
             var orient = this.Tree().CONFIG.rootOrientation, point = {};
 
-            if ( this.stackParentId ) {
-                if ( orient === 'NORTH' || orient === 'SOUTH' ) {
+            if (this.stackParentId) {
+                if (orient === 'NORTH' || orient === 'SOUTH') {
                     orient = 'WEST';
                 }
-                else if ( orient === 'EAST' || orient === 'WEST' ) {
+                else if (orient === 'EAST' || orient === 'WEST') {
                     orient = 'NORTH';
                 }
             }
 
-            if ( orient === 'NORTH' ) {
-                point.x = (this.pseudo) ? this.X - this.Tree().CONFIG.subTeeSeparation/2 : this.X + this.width/2;
+            if (orient === 'NORTH') {
+                point.x = (this.pseudo) ? this.X - this.Tree().CONFIG.subTeeSeparation / 2 : this.X + this.width / 2;
                 point.y = (startPoint) ? this.Y + this.height : this.Y;
             }
             else if (orient === 'SOUTH') {
-                point.x = (this.pseudo) ? this.X - this.Tree().CONFIG.subTeeSeparation/2 : this.X + this.width/2;
+                point.x = (this.pseudo) ? this.X - this.Tree().CONFIG.subTeeSeparation / 2 : this.X + this.width / 2;
                 point.y = (startPoint) ? this.Y : this.Y + this.height;
             }
             else if (orient === 'EAST') {
                 point.x = (startPoint) ? this.X : this.X + this.width;
-                point.y = (this.pseudo) ? this.Y - this.Tree().CONFIG.subTeeSeparation/2 : this.Y + this.height/2;
+                point.y = (this.pseudo) ? this.Y - this.Tree().CONFIG.subTeeSeparation / 2 : this.Y + this.height / 2;
             }
             else if (orient === 'WEST') {
                 point.x = (startPoint) ? this.X + this.width : this.X;
-                point.y =  (this.pseudo) ? this.Y - this.Tree().CONFIG.subTeeSeparation/2 : this.Y + this.height/2;
+                point.y = (this.pseudo) ? this.Y - this.Tree().CONFIG.subTeeSeparation / 2 : this.Y + this.height / 2;
             }
             return point;
         },
 
-        pathStringThrough: function() {
-            var startPoint = this.connectorPoint( true ),
-                endPoint = this.connectorPoint( false );
-            return ["M", startPoint.x+","+startPoint.y, 'L', endPoint.x+","+endPoint.y].join(" ");
+        pathStringThrough: function () {
+            var startPoint = this.connectorPoint(true),
+                endPoint = this.connectorPoint(false);
+            return ["M", startPoint.x + "," + startPoint.y, 'L', endPoint.x + "," + endPoint.y].join(" ");
         },
 
-        drawLineThroughMe: function( hidePoint ) {
-            var pathString = hidePoint?
-                this.Tree().getPointPathString( hidePoint ):
+        drawLineThroughMe: function (hidePoint) {
+            var pathString = hidePoint ?
+                this.Tree().getPointPathString(hidePoint) :
                 this.pathStringThrough();
 
             this.lineThroughMe = this.lineThroughMe || this.Tree()._R.path(pathString);
 
-            var line_style = UTIL.cloneObj( this.connStyle.style );
+            var line_style = UTIL.cloneObj(this.connStyle.style);
 
             delete line_style['arrow-start'];
             delete line_style['arrow-end'];
 
-            this.lineThroughMe.attr( line_style );
+            this.lineThroughMe.attr(line_style);
 
-            if ( hidePoint ) {
+            if (hidePoint) {
                 this.lineThroughMe.hide();
                 this.lineThroughMe.hidden = true;
             }
         },
 
-        addSwitchEvent: function( nodeSwitch ) {
-            UTIL.addEvent( nodeSwitch, 'click',
-                ( e ) => {
+        addSwitchEvent: function (nodeSwitch) {
+            UTIL.addEvent(nodeSwitch, 'click',
+                (e) => {
                     e.preventDefault();
-                    if ( this.getTreeConfig().callback.onBeforeClickCollapseSwitch.apply( this, [ nodeSwitch, e ] ) === false ) {
+                    if (this.getTreeConfig().callback.onBeforeClickCollapseSwitch.apply(this, [nodeSwitch, e]) === false) {
                         return false;
                     }
 
                     this.toggleCollapse();
 
-                    this.getTreeConfig().callback.onAfterClickCollapseSwitch.apply( this, [ nodeSwitch, e ] );
+                    this.getTreeConfig().callback.onAfterClickCollapseSwitch.apply(this, [nodeSwitch, e]);
                 }
             );
         },
 
-        collapse: function() {
-            if ( !this.collapsed ) {
+        collapse: function () {
+            if (!this.collapsed) {
                 this.toggleCollapse();
             }
             return this;
         },
 
-        expand: function() {
-            if ( this.collapsed ) {
+        expand: function () {
+            if (this.collapsed) {
                 this.toggleCollapse();
             }
             return this;
         },
 
-        toggleCollapse: function() {
+        toggleCollapse: function () {
             var oTree = this.getTree();
 
-            if ( !oTree.inAnimation ) {
+            if (!oTree.inAnimation) {
                 oTree.inAnimation = true;
 
                 this.collapsed = !this.collapsed;
-                UTIL.toggleClass( this.nodeDOM, 'collapsed', this.collapsed );
+                UTIL.toggleClass(this.nodeDOM, 'collapsed', this.collapsed);
 
                 oTree.positionTree();
 
                 setTimeout(
                     () => {
                         oTree.inAnimation = false;
-                        oTree.CONFIG.callback.onToggleCollapseFinished.apply( oTree, [ this, this.collapsed ] );
+                        oTree.CONFIG.callback.onToggleCollapseFinished.apply(oTree, [this, this.collapsed]);
                     },
-                    ( oTree.CONFIG.animation.nodeSpeed > oTree.CONFIG.animation.connectorsSpeed )?
-                        oTree.CONFIG.animation.nodeSpeed:
+                    (oTree.CONFIG.animation.nodeSpeed > oTree.CONFIG.animation.connectorsSpeed) ?
+                        oTree.CONFIG.animation.nodeSpeed :
                         oTree.CONFIG.animation.connectorsSpeed
                 );
             }
             return this;
         },
 
-        hide: function( collapse_to_point ) {
+        hide: function (collapse_to_point) {
             collapse_to_point = collapse_to_point || false;
 
             var bCurrentState = this.hidden;
@@ -1454,15 +1451,15 @@
                     opacity: 0
                 };
 
-            if ( collapse_to_point ) {
+            if (collapse_to_point) {
                 oNewState.left = collapse_to_point.x;
                 oNewState.top = collapse_to_point.y;
             }
 
-            if ( !this.positioned || bCurrentState ) {
+            if (!this.positioned || bCurrentState) {
                 this.nodeDOM.style.visibility = 'hidden';
-                if ( $ ) {
-                    $( this.nodeDOM ).css( oNewState );
+                if ($) {
+                    $(this.nodeDOM).css(oNewState);
                 }
                 else {
                     this.nodeDOM.style.left = oNewState.left + 'px';
@@ -1471,8 +1468,8 @@
                 this.positioned = true;
             }
             else {
-                if ( $ ) {
-                    $( this.nodeDOM ).animate(
+                if ($) {
+                    $(this.nodeDOM).animate(
                         oNewState, config.animation.nodeSpeed, config.animation.nodeAnimation,
                         function () {
                             this.style.visibility = 'hidden';
@@ -1480,7 +1477,7 @@
                     );
                 }
                 else {
-                    this.nodeDOM.style.transition = 'all '+config.animation.nodeSpeed+'ms ease';
+                    this.nodeDOM.style.transition = 'all ' + config.animation.nodeSpeed + 'ms ease';
                     this.nodeDOM.style.transitionProperty = 'opacity, left, top';
                     this.nodeDOM.style.opacity = oNewState.opacity;
                     this.nodeDOM.style.left = oNewState.left + 'px';
@@ -1489,23 +1486,23 @@
                 }
             }
 
-            if ( this.lineThroughMe ) {
-                var new_path = tree.getPointPathString( collapse_to_point );
-                if ( bCurrentState ) {
-                    this.lineThroughMe.attr( { path: new_path } );
+            if (this.lineThroughMe) {
+                var new_path = tree.getPointPathString(collapse_to_point);
+                if (bCurrentState) {
+                    this.lineThroughMe.attr({ path: new_path });
                 }
                 else {
-                    tree.animatePath( this.lineThroughMe, tree.getPointPathString( collapse_to_point ) );
+                    tree.animatePath(this.lineThroughMe, tree.getPointPathString(collapse_to_point));
                 }
             }
 
             return this;
         },
 
-        hideConnector: function() {
+        hideConnector: function () {
             var oTree = this.Tree();
             var oPath = oTree.connectionStore[this.id];
-            if ( oPath ) {
+            if (oPath) {
                 oPath.animate(
                     { 'opacity': 0 },
                     oTree.CONFIG.animation.connectorsSpeed,
@@ -1515,7 +1512,7 @@
             return this;
         },
 
-        show: function() {
+        show: function () {
             this.hidden = false;
 
             this.nodeDOM.style.visibility = 'visible';
@@ -1523,14 +1520,14 @@
             var oTree = this.Tree();
 
             var oNewState = {
-                    left: this.X,
-                    top: this.Y,
-                    opacity: 1
-                },
+                left: this.X,
+                top: this.Y,
+                opacity: 1
+            },
                 config = this.getTreeConfig();
 
-            if ( $ ) {
-                $( this.nodeDOM ).animate(
+            if ($) {
+                $(this.nodeDOM).animate(
                     oNewState,
                     config.animation.nodeSpeed, config.animation.nodeAnimation,
                     function () {
@@ -1539,7 +1536,7 @@
                 );
             }
             else {
-                this.nodeDOM.style.transition = 'all '+config.animation.nodeSpeed+'ms ease';
+                this.nodeDOM.style.transition = 'all ' + config.animation.nodeSpeed + 'ms ease';
                 this.nodeDOM.style.transitionProperty = 'opacity, left, top';
                 this.nodeDOM.style.left = oNewState.left + 'px';
                 this.nodeDOM.style.top = oNewState.top + 'px';
@@ -1547,17 +1544,17 @@
                 this.nodeDOM.style.overflow = '';
             }
 
-            if ( this.lineThroughMe ) {
-                this.getTree().animatePath( this.lineThroughMe, this.pathStringThrough() );
+            if (this.lineThroughMe) {
+                this.getTree().animatePath(this.lineThroughMe, this.pathStringThrough());
             }
 
             return this;
         },
 
-        showConnector: function() {
+        showConnector: function () {
             var oTree = this.Tree();
             var oPath = oTree.connectionStore[this.id];
-            if ( oPath ) {
+            if (oPath) {
                 oPath.animate(
                     { 'opacity': 1 },
                     oTree.CONFIG.animation.connectorsSpeed,
@@ -1585,7 +1582,7 @@
         return node;
     };
 
-    TreeNode.prototype.buildNodeFromHtml = function(node) {
+    TreeNode.prototype.buildNodeFromHtml = function (node) {
         if (this.nodeInnerHTML.charAt(0) === "#") {
             var elem = document.getElementById(this.nodeInnerHTML.substring(1));
             if (elem) {
@@ -1603,8 +1600,8 @@
         return node;
     };
 
-    TreeNode.prototype.createGeometry = function( tree ) {
-        if ( this.id === 0 && tree.CONFIG.hideRootNode ) {
+    TreeNode.prototype.createGeometry = function (tree) {
+        if (this.id === 0 && tree.CONFIG.hideRootNode) {
             this.width = 0;
             this.height = 0;
             return;
@@ -1613,24 +1610,24 @@
         var drawArea = tree.drawArea,
             image,
 
-            node = document.createElement( this.link ? 'a': 'div' );
+            node = document.createElement(this.link ? 'a' : 'div');
 
-        node.className = ( !this.pseudo )? TreeNode.CONFIG.nodeHTMLclass: 'pseudo';
-        if ( this.nodeHTMLclass && !this.pseudo ) {
+        node.className = (!this.pseudo) ? TreeNode.CONFIG.nodeHTMLclass : 'pseudo';
+        if (this.nodeHTMLclass && !this.pseudo) {
             node.className += ' ' + this.nodeHTMLclass;
         }
 
-        if ( this.nodeHTMLid ) {
+        if (this.nodeHTMLid) {
             node.id = this.nodeHTMLid;
         }
 
-        if ( this.link ) {
+        if (this.link) {
             node.href = this.link;
             node.target = tree.CONFIG.node.link.target;
         }
 
-        if ( $ ) {
-            $( node ).data( 'treenode', this );
+        if ($) {
+            $(node).data('treenode', this);
         }
         else {
             node.data = {
@@ -1638,15 +1635,15 @@
             };
         }
 
-        if ( !this.pseudo ) {
-            node = this.nodeInnerHTML? this.buildNodeFromHtml(node) : this.buildNodeFromText(node);
+        if (!this.pseudo) {
+            node = this.nodeInnerHTML ? this.buildNodeFromHtml(node) : this.buildNodeFromText(node);
 
-            if ( this.collapsed || (this.collapsable && this.childrenCount() && !this.stackParentId) ) {
-                this.createSwitchGeometry( tree, node );
+            if (this.collapsed || (this.collapsable && this.childrenCount() && !this.stackParentId)) {
+                this.createSwitchGeometry(tree, node);
             }
         }
 
-        tree.CONFIG.callback.onCreateNode.apply( tree, [this, node] );
+        tree.CONFIG.callback.onCreateNode.apply(tree, [this, node]);
 
         drawArea.appendChild(node);
 
@@ -1658,21 +1655,21 @@
         tree.imageLoader.processNode(this);
     };
 
-    TreeNode.prototype.createSwitchGeometry = function( tree, nodeEl ) {
+    TreeNode.prototype.createSwitchGeometry = function (tree, nodeEl) {
         nodeEl = nodeEl || this.nodeDOM;
 
-        var nodeSwitchEl = UTIL.findEl( '.collapse-switch', true, nodeEl );
-        if ( !nodeSwitchEl ) {
-            nodeSwitchEl = document.createElement( 'a' );
+        var nodeSwitchEl = UTIL.findEl('.collapse-switch', true, nodeEl);
+        if (!nodeSwitchEl) {
+            nodeSwitchEl = document.createElement('a');
             nodeSwitchEl.className = "collapse-switch";
 
-            nodeEl.appendChild( nodeSwitchEl );
-            this.addSwitchEvent( nodeSwitchEl );
-            if ( this.collapsed ) {
+            nodeEl.appendChild(nodeSwitchEl);
+            this.addSwitchEvent(nodeSwitchEl);
+            if (this.collapsed) {
                 nodeEl.className += " collapsed";
             }
 
-            tree.CONFIG.callback.onCreateNodeCollapseSwitch.apply( tree, [this, nodeEl, nodeSwitchEl] );
+            tree.CONFIG.callback.onCreateNodeCollapseSwitch.apply(tree, [this, nodeEl, nodeSwitchEl]);
         }
         return nodeSwitchEl;
     };
@@ -1718,16 +1715,16 @@
         },
 
         callback: {
-            onCreateNode: ( treeNode, treeNodeDom ) => {},
-            onCreateNodeCollapseSwitch: ( treeNode, treeNodeDom, switchDom ) => {},
-            onAfterAddNode: ( newTreeNode, parentTreeNode, nodeStructure ) => {},
-            onBeforeAddNode: ( parentTreeNode, nodeStructure ) => {},
-            onAfterPositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {},
-            onBeforePositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {},
-            onToggleCollapseFinished: ( treeNode, bIsCollapsed ) => {},
-            onAfterClickCollapseSwitch: ( nodeSwitch, event ) => {},
-            onBeforeClickCollapseSwitch: ( nodeSwitch, event ) => {},
-            onTreeLoaded: ( rootTreeNode ) => {}
+            onCreateNode: (treeNode, treeNodeDom) => { },
+            onCreateNodeCollapseSwitch: (treeNode, treeNodeDom, switchDom) => { },
+            onAfterAddNode: (newTreeNode, parentTreeNode, nodeStructure) => { },
+            onBeforeAddNode: (parentTreeNode, nodeStructure) => { },
+            onAfterPositionNode: (treeNode, nodeDbIndex, containerCenter, treeCenter) => { },
+            onBeforePositionNode: (treeNode, nodeDbIndex, containerCenter, treeCenter) => { },
+            onToggleCollapseFinished: (treeNode, bIsCollapsed) => { },
+            onAfterClickCollapseSwitch: (nodeSwitch, event) => { },
+            onBeforeClickCollapseSwitch: (nodeSwitch, event) => { },
+            onTreeLoaded: (rootTreeNode) => { }
         }
     };
 
@@ -1735,7 +1732,7 @@
         nodeHTMLclass: 'node'
     };
 
-    var Treant = function( jsonConfig, callback, jQuery ) {
+    var triton = function (jsonConfig, callback, jQuery) {
         // Extract the nodes array
         var nodesArray = jsonConfig.nodes || [];
 
@@ -1762,7 +1759,7 @@
             delete config.target;
         }
 
-        if ( jQuery ) {
+        if (jQuery) {
             $ = jQuery;
         }
 
@@ -1771,14 +1768,14 @@
             nodes: nodesArray
         };
 
-        this.tree = TreeStore.createTree( treeConfig );
-        this.tree.positionTree( callback );
+        this.tree = TreeStore.createTree(treeConfig);
+        this.tree.positionTree(callback);
     };
 
-    Treant.prototype.destroy = function() {
-        TreeStore.destroy( this.tree.id );
+    triton.prototype.destroy = function () {
+        TreeStore.destroy(this.tree.id);
     };
 
-    window.Treant = Treant;
+    window.triton = triton;
 
 })();

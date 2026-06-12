@@ -1,8 +1,8 @@
-# Treant-js
+<img align="left" alt="triton logo" src="assets/logo.png" style="max-width: 200px; padding: 20px 20px 0 0"/>
 
-Treant-js is an SVG based JS library for drawing tree diagrams. It relies on [Raphaël](http://raphaeljs.com) for SVG rendering and animations.
+# triton
 
----
+triton is an SVG based JS library for drawing tree diagrams (forked from [treant-js](https://github.com/fperucic/treant-js)). It relies on [Raphaël](http://raphaeljs.com) for SVG rendering and animations.
 
 ## Quick start
 
@@ -10,10 +10,10 @@ Treant-js is an SVG based JS library for drawing tree diagrams. It relies on [Ra
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="Treant.css">
+  <link rel="stylesheet" href="triton.css">
   <style>
     #graph { height: 500px; width: 800px; }
-    .Treant > .node {
+    .triton > .node {
       padding: 8px 12px; border-radius: 4px;
       background: #fff; border: 1px solid #ccc;
       width: 160px; text-align: center;
@@ -23,10 +23,10 @@ Treant-js is an SVG based JS library for drawing tree diagrams. It relies on [Ra
 </head>
 <body>
   <div class="chart" id="graph"></div>
-  <script src="vendor/raphael.js"></script>
-  <script src="Treant.js"></script>
+  <script src="https://raw.githubusercontent.com/iamlostshe/treant-js/refs/heads/master/vendor/raphael.js"></script>
+  <script src="https://raw.githubusercontent.com/iamlostshe/treant-js/refs/heads/master/triton.min.js"></script>
   <script>
-    new Treant({
+    new triton({
       nodes: [
         { id: 1, text: "Root",       children: [2, 3] },
         { id: 2, text: "Child A",    parent: 1 },
@@ -39,14 +39,12 @@ Treant-js is an SVG based JS library for drawing tree diagrams. It relies on [Ra
 </html>
 ```
 
----
-
 ## Config format (flat, ID-based)
 
 Instead of the original hierarchical `nodeStructure`, this fork uses a flat **`nodes` array** where every node declares its own `id` and refers to parents/children by ID.
 
 ```js
-new Treant({
+new triton({
   container: "#graph",           // optional, default "#graph"
   target: "_blank",              // optional link target, default "_self"
 
@@ -82,91 +80,8 @@ new Treant({
 | `pseudo` | `boolean` | Invisible placeholder node. |
 | `connectors` | `object` | Per-node connector style override. |
 
----
-
-## Examples
-
-### Basic tree
-
-Simple parent-child hierarchy with a single root:
-
-```js
-new Treant({
-  nodes: [
-    { id: "programming", text: "Programming",
-      children: ["syntax", "paradigms", "tools"] },
-
-    { id: "syntax",    text: "Syntax",     parent: "programming",
-      children: ["variables", "functions"] },
-    { id: "variables", text: "Variables",  parent: "syntax" },
-    { id: "functions", text: "Functions",  parent: "syntax" },
-
-    { id: "paradigms",   text: "Paradigms",  parent: "programming",
-      children: ["oop", "functional"] },
-    { id: "oop",         text: "OOP",        parent: "paradigms" },
-    { id: "functional",  text: "Functional", parent: "paradigms" },
-
-    { id: "tools",    text: "Tools",         parent: "programming",
-      children: ["editor", "compiler"] },
-    { id: "editor",   text: "Code editor",   parent: "tools" },
-    { id: "compiler", text: "Compiler",      parent: "tools" },
-  ]
-});
-```
-
-### Converging edges (DAG)
-
-A child can have multiple parents. The first parent determines tree layout; the rest are rendered as extra connector lines:
-
-```js
-new Treant({
-  connectors: { type: "step", style: { "stroke-width": 2, stroke: "#999" } },
-  nodes: [
-    { id: "frontend", text: "Frontend",  children: ["html", "css", "js"] },
-    { id: "backend",  text: "Backend",   children: ["db", "api", "js"] },
-    { id: "html",     text: "HTML",      parent: "frontend" },
-    { id: "css",      text: "CSS",       parent: "frontend" },
-    { id: "db",       text: "Database",  parent: "backend" },
-    { id: "api",      text: "API",       parent: "backend" },
-    {
-      id: "js",       text: "JavaScript",
-      parent: ["frontend", "backend"],   // two parents!
-      children: ["ecma", "dom"],
-    },
-    { id: "ecma",     text: "ECMAScript", parent: "js" },
-    { id: "dom",      text: "DOM API",    parent: "js" },
-  ]
-});
-```
-
-Here **JavaScript** sits under *Frontend* in the tree layout, but an extra connector is drawn from *Backend* as well.
-
-### Multiple independent roots
-
-If no single root is found, a hidden virtual root is created automatically. Each top-level node is rendered at the same level:
-
-```js
-new Treant({
-  connectors: { type: "step", style: { "stroke-width": 2, stroke: "#aaa" } },
-  nodes: [
-    { id: "langs",    text: "Languages",  children: ["python", "rust"] },
-    { id: "python",   text: "Python",     parent: "langs" },
-    { id: "rust",     text: "Rust",       parent: "langs" },
-    { id: "concepts", text: "Concepts",   children: ["types", "patterns"] },
-    { id: "types",    text: "Type system", parent: "concepts" },
-    { id: "patterns", text: "Patterns",    parent: "concepts" },
-    { id: "tools",    text: "Tools",       children: ["git", "docker"] },
-    { id: "git",      text: "Git",         parent: "tools" },
-    { id: "docker",   text: "Docker",      parent: "tools" },
-  ]
-});
-```
-
----
-
-## Building to `Treant.min.js`
+## Dev: Building to `triton.min.js`
 
 ```sh
-npm install
-npx terser Treant.js --compress --mangle -o Treant.min.js
+bun build triton.js --minify --outfile triton.min.js
 ```
