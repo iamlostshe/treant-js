@@ -1,7 +1,7 @@
 /* Copyright (c) 2012 HyeonJe Jun (http://github.com/noraesae)
  * Licensed under the MIT License
  */
-((function($) {
+((($) => {
 
     // The default settings for the plugin
     var defaultSettings = {
@@ -54,19 +54,19 @@
             scrollbar_y_top,
             scrollbar_y_right = parseInt($scrollbar_y.css('right'), 10);
 
-        var updateContentScrollTop = function() {
+        var updateContentScrollTop = () => {
             var scroll_top = parseInt(scrollbar_y_top * content_height / container_height, 10);
             $this.scrollTop(scroll_top);
             $scrollbar_x.css({bottom: scrollbar_x_bottom - scroll_top});
         };
 
-        var updateContentScrollLeft = function() {
+        var updateContentScrollLeft = () => {
             var scroll_left = parseInt(scrollbar_x_left * content_width / container_width, 10);
             $this.scrollLeft(scroll_left);
             $scrollbar_y.css({right: scrollbar_y_right - scroll_left});
         };
 
-        var updateBarSizeAndPosition = function() {
+        var updateBarSizeAndPosition = () => {
             container_width = $this.width();
             container_height = $this.height();
             content_width = $content.outerWidth(false);
@@ -94,7 +94,7 @@
             $scrollbar_y.css({top: scrollbar_y_top + $this.scrollTop(), right: scrollbar_y_right - $this.scrollLeft(), height: scrollbar_y_height});
         };
 
-        var moveBarX = function(current_left, delta_x) {
+        var moveBarX = (current_left, delta_x) => {
             var new_left = current_left + delta_x,
                 max_left = container_width - scrollbar_x_width;
 
@@ -110,7 +110,7 @@
             $scrollbar_x.css({left: scrollbar_x_left + $this.scrollLeft()});
         };
 
-        var moveBarY = function(current_top, delta_y) {
+        var moveBarY = (current_top, delta_y) => {
             var new_top = current_top + delta_y,
                 max_top = container_height - scrollbar_y_height;
 
@@ -126,11 +126,11 @@
             $scrollbar_y.css({top: scrollbar_y_top + $this.scrollTop()});
         };
 
-        var bindMouseScrollXHandler = function() {
+        var bindMouseScrollXHandler = () => {
             var current_left,
                 current_page_x;
 
-            $scrollbar_x.bind('mousedown.perfect-scroll', function(e) {
+            $scrollbar_x.bind('mousedown.perfect-scroll', (e) => {
                 current_page_x = e.pageX;
                 current_left = $scrollbar_x.position().left;
                 $scrollbar_x.addClass('in-scrolling');
@@ -138,7 +138,7 @@
                 e.preventDefault();
             });
 
-            $(document).bind('mousemove.perfect-scroll', function(e) {
+            $(document).bind('mousemove.perfect-scroll', (e) => {
                 if($scrollbar_x.hasClass('in-scrolling')) {
                     moveBarX(current_left, e.pageX - current_page_x);
                     updateContentScrollLeft();
@@ -147,18 +147,18 @@
                 }
             });
 
-            $(document).bind('mouseup.perfect-scroll', function(e) {
+            $(document).bind('mouseup.perfect-scroll', (e) => {
                 if($scrollbar_x.hasClass('in-scrolling')) {
                     $scrollbar_x.removeClass('in-scrolling');
                 }
             });
         };
 
-        var bindMouseScrollYHandler = function() {
+        var bindMouseScrollYHandler = () => {
             var current_top,
                 current_page_y;
 
-            $scrollbar_y.bind('mousedown.perfect-scroll', function(e) {
+            $scrollbar_y.bind('mousedown.perfect-scroll', (e) => {
                 current_page_y = e.pageY;
                 current_top = $scrollbar_y.position().top;
                 $scrollbar_y.addClass('in-scrolling');
@@ -166,7 +166,7 @@
                 e.preventDefault();
             });
 
-            $(document).bind('mousemove.perfect-scroll', function(e) {
+            $(document).bind('mousemove.perfect-scroll', (e) => {
                 if($scrollbar_y.hasClass('in-scrolling')) {
                     moveBarY(current_top, e.pageY - current_page_y);
                     updateContentScrollTop();
@@ -175,7 +175,7 @@
                 }
             });
 
-            $(document).bind('mouseup.perfect-scroll', function(e) {
+            $(document).bind('mouseup.perfect-scroll', (e) => {
                 if($scrollbar_y.hasClass('in-scrolling')) {
                     $scrollbar_y.removeClass('in-scrolling');
                 }
@@ -183,8 +183,8 @@
         };
 
         // bind handlers
-        var bindMouseWheelHandler = function() {
-            var shouldPreventDefault = function(deltaX, deltaY) {
+        var bindMouseWheelHandler = () => {
+            var shouldPreventDefault = (deltaX, deltaY) => {
                 var scrollTop = $this.scrollTop();
                 if(scrollTop === 0 && deltaY > 0 && deltaX === 0) {
                     return !settings.wheelPropagation;
@@ -203,7 +203,7 @@
                 return true;
             };
 
-            $this.mousewheel(function(e, delta, deltaX, deltaY) {
+            $this.mousewheel((e, delta, deltaX, deltaY) => {
                 $this.scrollTop($this.scrollTop() - (deltaY * settings.wheelSpeed));
                 $this.scrollLeft($this.scrollLeft() + (deltaX * settings.wheelSpeed));
 
@@ -217,8 +217,8 @@
         };
 
         // bind mobile touch handler
-        var bindMobileTouchHandler = function() {
-            var applyTouchMove = function(difference_x, difference_y) {
+        var bindMobileTouchHandler = () => {
+            var applyTouchMove = (difference_x, difference_y) => {
                 $this.scrollTop($this.scrollTop() - difference_y);
                 $this.scrollLeft($this.scrollLeft() - difference_x);
 
@@ -231,7 +231,7 @@
                 speed = {},
                 breaking_process = null;
 
-            $this.bind("touchstart.perfect-scroll", function(e) {
+            $this.bind("touchstart.perfect-scroll", (e) => {
                 var touch = e.originalEvent.targetTouches[0];
 
                 start_coords.pageX = touch.pageX;
@@ -243,7 +243,7 @@
                     clearInterval(breaking_process);
                 }
             });
-            $this.bind("touchmove.perfect-scroll", function(e) {
+            $this.bind("touchmove.perfect-scroll", (e) => {
                 var touch = e.originalEvent.targetTouches[0];
 
                 var current_coords = {};
@@ -263,8 +263,8 @@
 
                 e.preventDefault();
             });
-            $this.bind("touchend.perfect-scroll", function(e) {
-                breaking_process = setInterval(function() {
+            $this.bind("touchend.perfect-scroll", (e) => {
+                breaking_process = setInterval(() => {
                     if(Math.abs(speed.x) < 0.01 && Math.abs(speed.y) < 0.01) {
                         clearInterval(breaking_process);
                         return;
@@ -278,7 +278,7 @@
             });
         };
 
-        var destroy = function() {
+        var destroy = () => {
             $scrollbar_x.remove();
             $scrollbar_y.remove();
             $this.unbind('mousewheel');
@@ -294,7 +294,7 @@
 
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 
-        var initialize = function() {
+        var initialize = () => {
             updateBarSizeAndPosition();
             bindMouseScrollXHandler();
             bindMouseScrollYHandler();

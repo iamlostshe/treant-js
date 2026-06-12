@@ -17,7 +17,7 @@
  * Dave Goodchild, https://github.com/dlgoodchild
  */
 
-;( function() {
+;( () => {
     // Polyfill for IE to use startsWith
     if (!String.prototype.startsWith) {
         String.prototype.startsWith = function(searchString, position){
@@ -37,7 +37,7 @@
          */
         inheritAttrs: function( applyTo, applyFrom ) {
             for ( var attr in applyFrom ) {
-                if ( applyFrom.hasOwnProperty( attr ) ) {
+                if ( Object.hasOwn(applyFrom, attr ) ) {
                     if ( ( applyTo[attr] instanceof Object && applyFrom[attr] instanceof Object ) && ( typeof applyFrom[attr] !== 'function' ) ) {
                         this.inheritAttrs( applyTo[attr], applyFrom[attr] );
                     }
@@ -90,7 +90,7 @@
             }
             var res = new obj.constructor();
             for ( var key in obj ) {
-                if ( obj.hasOwnProperty(key) ) {
+                if ( Object.hasOwn(obj, key) ) {
                     res[key] = this.cloneObj(obj[key]);
                 }
             }
@@ -102,7 +102,7 @@
          * @param {string} eventType
          * @param {function} handler
          */
-        addEvent: function( el, eventType, handler ) {
+        addEvent: ( el, eventType, handler ) => {
             if ( $ ) {
                 $( el ).on( eventType+'.treant', handler );
             }
@@ -123,7 +123,7 @@
          * @param {Element} parentEl
          * @returns {Element|jQuery}
          */
-        findEl: function( selector, raw, parentEl ) {
+        findEl: ( selector, raw, parentEl ) => {
             parentEl = parentEl || document;
 
             if ( $ ) {
@@ -146,7 +146,7 @@
             }
         },
 
-        getOuterHeight: function( element ) {
+        getOuterHeight: ( element ) => {
             var nRoundingCompensation = 1;
             if ( typeof element.getBoundingClientRect === 'function' ) {
                 return element.getBoundingClientRect().height;
@@ -166,7 +166,7 @@
             }
         },
 
-        getOuterWidth: function( element ) {
+        getOuterWidth: ( element ) => {
             var nRoundingCompensation = 1;
             if ( typeof element.getBoundingClientRect === 'function' ) {
                 return element.getBoundingClientRect().width;
@@ -186,16 +186,14 @@
             }
         },
 
-        getStyle: function( element, strCssRule, asInt ) {
+        getStyle: ( element, strCssRule, asInt ) => {
             var strValue = "";
             if ( document.defaultView && document.defaultView.getComputedStyle ) {
                 strValue = document.defaultView.getComputedStyle( element, '' ).getPropertyValue( strCssRule );
             }
             else if( element.currentStyle ) {
-                strCssRule = strCssRule.replace(/\-(\w)/g,
-                    function (strMatch, p1){
-                        return p1.toUpperCase();
-                    }
+                strCssRule = strCssRule.replace(/-(\w)/g,
+                    (strMatch, p1)=> p1.toUpperCase()
                 );
                 strValue = element.currentStyle[strCssRule];
             }
@@ -203,7 +201,7 @@
             return ( asInt? parseFloat( strValue ): strValue );
         },
 
-        addClass: function( element, cssClass ) {
+        addClass: ( element, cssClass ) => {
             if ( $ ) {
                 $( element ).addClass( cssClass );
             }
@@ -219,11 +217,9 @@
             }
         },
 
-        hasClass: function(element, my_class) {
-            return (" " + element.className + " ").replace(/[\n\t]/g, " ").indexOf(" "+my_class+" ") > -1;
-        },
+        hasClass: (element, my_class) => (" " + element.className + " ").replace(/[\n\t]/g, " ").indexOf(" "+my_class+" ") > -1,
 
-        toggleClass: function ( element, cls, apply ) {
+        toggleClass: ( element, cls, apply ) => {
             if ( $ ) {
                 $( element ).toggleClass( cls, apply );
             }
@@ -238,7 +234,7 @@
             }
         },
 
-        setDimensions: function( element, width, height ) {
+        setDimensions: ( element, width, height ) => {
             if ( $ ) {
                 $( element ).width( width ).height( height );
             }
@@ -247,7 +243,7 @@
                 element.style.height = height+'px';
             }
         },
-        isjQueryAvailable: function() {return(typeof ($) !== 'undefined' && $);}
+        isjQueryAvailable: () => (typeof ($) !== 'undefined' && $)
     };
 
     /**
@@ -493,7 +489,6 @@
          * @returns {Tree}
          */
         positionTree: function( callback ) {
-            var self = this;
 
             if ( this.imageLoader.isNotLoading() ) {
                 var root = this.root();                    
@@ -507,7 +502,7 @@
 
                 if ( this.CONFIG.animateOnInit ) {
                     setTimeout(
-                        function() {
+                        () => {
                             root.toggleCollapse();
                         },
                         this.CONFIG.animateOnInitDelay
@@ -517,17 +512,17 @@
                 if ( !this.loaded ) {
                     UTIL.addClass( this.drawArea, 'Treant-loaded' ); // nodes are hidden until .loaded class is added
                     if ( Object.prototype.toString.call( callback ) === "[object Function]" ) {
-                        callback( self );
+                        callback( this );
                     }
-                    self.CONFIG.callback.onTreeLoaded.apply( self, [root] );
+                    this.CONFIG.callback.onTreeLoaded.apply( this, [root] );
                     this.loaded = true;
                 }
 
             }
             else {
                 setTimeout(
-                    function() {
-                        self.positionTree( callback );
+                    () => {
+                        this.positionTree( callback );
                     }, 10
                 );
             }
@@ -747,10 +742,10 @@
          * @returns {Tree}
          */
         positionNodes: function() {
-            var self = this,
+            var 
                 treeSize = {
-                    x: self.nodeDB.getMinMaxCoord('X', null, null),
-                    y: self.nodeDB.getMinMaxCoord('Y', null, null)
+                    x: this.nodeDB.getMinMaxCoord('X', null, null),
+                    y: this.nodeDB.getMinMaxCoord('Y', null, null)
                 },
 
                 treeWidth = treeSize.x.max - treeSize.x.min,
@@ -765,8 +760,8 @@
 
             var
                 containerCenter = {
-                    x: self.drawArea.clientWidth/2,
-                    y: self.drawArea.clientHeight/2
+                    x: this.drawArea.clientWidth/2,
+                    y: this.drawArea.clientHeight/2
                 },
 
                 deltaX = containerCenter.x - treeCenter.x,
@@ -782,10 +777,10 @@
 
                 node = this.nodeDB.get(i);
 
-                self.CONFIG.callback.onBeforePositionNode.apply( self, [node, i, containerCenter, treeCenter] );
+                this.CONFIG.callback.onBeforePositionNode.apply( this, [node, i, containerCenter, treeCenter] );
 
                 if ( node.id === 0 && this.CONFIG.hideRootNode ) {
-                    self.CONFIG.callback.onAfterPositionNode.apply( self, [node, i, containerCenter, treeCenter] );
+                    this.CONFIG.callback.onAfterPositionNode.apply( this, [node, i, containerCenter, treeCenter] );
                     continue;
                 }
 
@@ -820,7 +815,7 @@
                     node.drawLineThroughMe();
                 }
 
-                self.CONFIG.callback.onAfterPositionNode.apply( self, [node, i, containerCenter, treeCenter] );
+                this.CONFIG.callback.onAfterPositionNode.apply( this, [node, i, containerCenter, treeCenter] );
             }
             return this;
         },
@@ -924,9 +919,7 @@
          * @param {object} hidePoint
          * @returns {string}
          */
-        getPointPathString: function( hidePoint ) {
-            return ["_M", hidePoint.x, ",", hidePoint.y, 'L', hidePoint.x, ",", hidePoint.y, hidePoint.x, ",", hidePoint.y].join(' ');
-        },
+        getPointPathString: ( hidePoint ) => ["_M", hidePoint.x, ",", hidePoint.y, 'L', hidePoint.x, ",", hidePoint.y, hidePoint.x, ",", hidePoint.y].join(' '),
 
         /**
          * This method relied on receiving a valid Raphael Paper.path.
@@ -951,7 +944,7 @@
                 },
                 this.CONFIG.animation.connectorsSpeed,
                 this.CONFIG.animation.connectorsAnimation,
-                function() {
+                () => {
                     if ( pathString.charAt(0) === "_" ) { // animation is hiding the path, hide it at the and of animation
                         path.hide();
                         path.hidden = true;
@@ -1281,7 +1274,7 @@
          * @param {object} nodeStructure
          * @returns {boolean}
          */
-	hasGrandChildren: function (nodeStructure) {
+	hasGrandChildren: (nodeStructure) => {
 	    var i = nodeStructure.children.length;
 	    while (i--) {
 	        if (nodeStructure.children[i].children && nodeStructure.children[i].children.length > 0) {
@@ -1610,17 +1603,16 @@
         },
 
         addSwitchEvent: function( nodeSwitch ) {
-            var self = this;
             UTIL.addEvent( nodeSwitch, 'click',
-                function( e ) {
+                ( e ) => {
                     e.preventDefault();
-                    if ( self.getTreeConfig().callback.onBeforeClickCollapseSwitch.apply( self, [ nodeSwitch, e ] ) === false ) {
+                    if ( this.getTreeConfig().callback.onBeforeClickCollapseSwitch.apply( this, [ nodeSwitch, e ] ) === false ) {
                         return false;
                     }
 
-                    self.toggleCollapse();
+                    this.toggleCollapse();
 
-                    self.getTreeConfig().callback.onAfterClickCollapseSwitch.apply( self, [ nodeSwitch, e ] );
+                    this.getTreeConfig().callback.onAfterClickCollapseSwitch.apply( this, [ nodeSwitch, e ] );
                 }
             );
         },
@@ -1659,12 +1651,10 @@
 
                 oTree.positionTree();
 
-                var self = this;
-
                 setTimeout(
-                    function() { // set the flag after the animation
+                    () => { // set the flag after the animation
                         oTree.inAnimation = false;
-                        oTree.CONFIG.callback.onToggleCollapseFinished.apply( oTree, [ self, self.collapsed ] );
+                        oTree.CONFIG.callback.onToggleCollapseFinished.apply( oTree, [ this, this.collapsed ] );
                     },
                     ( oTree.CONFIG.animation.nodeSpeed > oTree.CONFIG.animation.connectorsSpeed )?
                         oTree.CONFIG.animation.nodeSpeed:
@@ -2038,16 +2028,16 @@
         },
 
         callback: {
-            onCreateNode: function( treeNode, treeNodeDom ) {}, // this = Tree
-            onCreateNodeCollapseSwitch: function( treeNode, treeNodeDom, switchDom ) {}, // this = Tree
-            onAfterAddNode: function( newTreeNode, parentTreeNode, nodeStructure ) {}, // this = Tree
-            onBeforeAddNode: function( parentTreeNode, nodeStructure ) {}, // this = Tree
-            onAfterPositionNode: function( treeNode, nodeDbIndex, containerCenter, treeCenter) {}, // this = Tree
-            onBeforePositionNode: function( treeNode, nodeDbIndex, containerCenter, treeCenter) {}, // this = Tree
-            onToggleCollapseFinished: function ( treeNode, bIsCollapsed ) {}, // this = Tree
-            onAfterClickCollapseSwitch: function( nodeSwitch, event ) {}, // this = TreeNode
-            onBeforeClickCollapseSwitch: function( nodeSwitch, event ) {}, // this = TreeNode
-            onTreeLoaded: function( rootTreeNode ) {} // this = Tree
+            onCreateNode: ( treeNode, treeNodeDom ) => {}, // this = Tree
+            onCreateNodeCollapseSwitch: ( treeNode, treeNodeDom, switchDom ) => {}, // this = Tree
+            onAfterAddNode: ( newTreeNode, parentTreeNode, nodeStructure ) => {}, // this = Tree
+            onBeforeAddNode: ( parentTreeNode, nodeStructure ) => {}, // this = Tree
+            onAfterPositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {}, // this = Tree
+            onBeforePositionNode: ( treeNode, nodeDbIndex, containerCenter, treeCenter) => {}, // this = Tree
+            onToggleCollapseFinished: ( treeNode, bIsCollapsed ) => {}, // this = Tree
+            onAfterClickCollapseSwitch: ( nodeSwitch, event ) => {}, // this = TreeNode
+            onBeforeClickCollapseSwitch: ( nodeSwitch, event ) => {}, // this = TreeNode
+            onTreeLoaded: ( rootTreeNode ) => {} // this = Tree
         }
     };
 
@@ -2071,12 +2061,12 @@
             //fist loop: find config, find root;
             while(i--) {
                 node = configArray[i];
-                if (node.hasOwnProperty('container')) {
+                if (Object.hasOwn(node, 'container')) {
                     this.jsonStructure.chart = node;
                     continue;
                 }
 
-                if (!node.hasOwnProperty('parent') && ! node.hasOwnProperty('container')) {
+                if (!Object.hasOwn(node, 'parent') && ! Object.hasOwn(node, 'container')) {
                     this.jsonStructure.nodeStructure = node;
                     node._json_id = 0;
                 }
@@ -2133,11 +2123,9 @@
         },
 
         getID: (
-            function() {
+            () => {
                 var i = 1;
-                return function() {
-                    return i++;
-                };
+                return () => i++;
             }
         )()
     };
