@@ -1,4 +1,4 @@
-<img align="left" alt="triton logo" src="assets/logo.png" style="max-width: 200px; padding: 20px 20px 0 0"/>
+<img align="left" alt="triton logo" src="assets/logo.png" width=200px />
 
 # triton
 
